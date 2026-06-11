@@ -10,13 +10,49 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; background: #f9fafb; }
+    :root {
+      --bg: #f9fafb;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text2: #6b7280;
+      --sidebar: #111827;
+    }
+    body.dark {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --sidebar: #020617;
+    }
+    body { margin: 0; background: var(--bg); color: var(--text); }
     [draggable="true"] { cursor: grab; user-select: none; }
     [draggable="true"]:active { cursor: grabbing; }
     .drop-target { outline: 2px dashed #60a5fa; outline-offset: -2px; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    body.dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+    /* Dark mode overrides for Tailwind utility classes used heavily across views */
+    body.dark .bg-white { background-color: var(--surface) !important; }
+    body.dark .bg-gray-50 { background-color: var(--bg) !important; }
+    body.dark .bg-gray-100 { background-color: #1e293b !important; }
+    body.dark .text-gray-900 { color: var(--text) !important; }
+    body.dark .text-gray-800 { color: #cbd5e1 !important; }
+    body.dark .text-gray-700 { color: #cbd5e1 !important; }
+    body.dark .text-gray-600 { color: #94a3b8 !important; }
+    body.dark .text-gray-500 { color: #94a3b8 !important; }
+    body.dark .text-gray-400 { color: #64748b !important; }
+    body.dark .border-gray-200 { border-color: var(--border) !important; }
+    body.dark .border-gray-300 { border-color: #475569 !important; }
+    body.dark .border-gray-100 { border-color: #1e293b !important; }
+    body.dark input, body.dark textarea, body.dark select {
+      background-color: #0f172a; color: var(--text); border-color: #475569;
+    }
+    body.dark .hover\:bg-gray-50:hover { background-color: #334155 !important; }
+    body.dark .hover\:bg-gray-100:hover { background-color: #334155 !important; }
   </style>
 </head>
 <body>
@@ -48,6 +84,17 @@ const STATUTS = [
   { id:"termine",  label:"Terminé" },
 ];
 
+const STATUT_COLORS = { todo:"#9ca3af", en_cours:"#3b82f6", termine:"#22c55e" };
+
+const STATUTS_PROJET = [
+  { id:"planification",   label:"Planification",  color:"#6366f1" },
+  { id:"production",      label:"Production",      color:"#f59e0b" },
+  { id:"post-evenement",  label:"Post-événement",  color:"#0ea5e9" },
+  { id:"archive",         label:"Archivé",         color:"#6b7280" },
+];
+
+const DEFAULT_COL_LABELS = { todo:"À faire", en_cours:"En cours", termine:"Terminé" };
+
 const ESTIMATIONS_REF = [
   { label:"Communiqué de presse (rédaction)",      min:2,   max:3,   kw:["communiqué","rédaction","press"] },
   { label:"Pitch médias / email journalistes",      min:1,   max:2,   kw:["pitch","journaliste","invitation","presse"] },
@@ -64,26 +111,61 @@ const ESTIMATIONS_REF = [
 
 // ── SEED DATA ──────────────────────────────────────────────────────────────
 
-const SEED_EVENEMENTS = [
-  { id:"lpv",       label:"Les Premiers Vendredis",  color:"#E24B4A", budgetHeures:120, actif:true,  dateProchaine:"2026-09-04" },
-  { id:"boulettes", label:"Festival des Boulettes",  color:"#BA7517", budgetHeures:10,  actif:true,  dateProchaine:"2026-06-13" },
-  { id:"tianguis",  label:"Tianguis Montréal",       color:"#1D9E75", budgetHeures:0,   actif:false, dateProchaine:null },
-  { id:"gamelin",   label:"Casse-Croûte Gamelin",    color:"#378ADD", budgetHeures:30,  actif:true,  dateProchaine:"2026-05-28" },
-  { id:"floralies", label:"Buvette des Floralies",   color:"#7F77DD", budgetHeures:30,  actif:true,  dateProchaine:"2026-06-29" },
-  { id:"marches",   label:"Marchés Publics MTL",     color:"#5F5E5A", budgetHeures:12,  actif:true,  dateProchaine:null },
-];
-
 function uid() {
   return Math.random().toString(36).slice(2,9) + Date.now().toString(36);
 }
 
+const SEED_EVENEMENTS = [
+  { id:"lpv", label:"Les Premiers Vendredis", color:"#E24B4A", budgetHeures:120, actif:true, dateProchaine:"2026-09-04",
+    lieu:"Esplanade du Stade olympique", statutProjet:"production", ordre:1,
+    description:"Plus grand rassemblement de camions de cuisine de rue au Canada, chaque premier vendredi du mois de mai à octobre.",
+    notes:"Prochaine édition 4 sept / Édition finale 2 oct. Forte couverture médiatique attendue.",
+    responsables:["Rémy","Équipe Comm"],
+    datesEvenement:[ {id:uid(),label:"Édition de septembre",date:"2026-09-04"}, {id:uid(),label:"Édition finale",date:"2026-10-02"} ] },
+  { id:"boulettes", label:"Festival des Boulettes", color:"#BA7517", budgetHeures:10, actif:true, dateProchaine:"2026-06-13",
+    lieu:"Marché Jean-Talon", statutProjet:"post-evenement", ordre:2,
+    description:"Festival gourmand célébrant la boulette sous toutes ses formes.",
+    notes:"Édition tenue le 13 juin. Bilan de visibilité à produire.",
+    responsables:["Rémy"],
+    datesEvenement:[ {id:uid(),label:"Jour J",date:"2026-06-13"} ] },
+  { id:"tianguis", label:"Tianguis Montréal", color:"#1D9E75", budgetHeures:0, actif:false, dateProchaine:null,
+    lieu:"À déterminer", statutProjet:"archive", ordre:3,
+    description:"Marché d'inspiration mexicaine. Projet actuellement suspendu.",
+    notes:"Projet en pause — à réévaluer pour la saison suivante.",
+    responsables:[],
+    datesEvenement:[] },
+  { id:"gamelin", label:"Casse-Croûte Gamelin", color:"#378ADD", budgetHeures:30, actif:true, dateProchaine:"2026-05-28",
+    lieu:"Place Émilie-Gamelin", statutProjet:"production", ordre:4,
+    description:"Casse-croûte estival animant la Place Émilie-Gamelin avec une offre culinaire abordable.",
+    notes:"Ouverture de la saison fin mai. Coordination logistique en cours.",
+    responsables:["Équipe Logistique"],
+    datesEvenement:[ {id:uid(),label:"Ouverture",date:"2026-05-28"} ] },
+  { id:"floralies", label:"Buvette des Floralies", color:"#7F77DD", budgetHeures:30, actif:true, dateProchaine:"2026-06-29",
+    lieu:"Parc Maisonneuve", statutProjet:"planification", ordre:5,
+    description:"Buvette éphémère au cœur du Parc Maisonneuve, en complément de la programmation florale.",
+    notes:"Coordination partenaires à finaliser avant l'ouverture.",
+    responsables:["Équipe Partenaires"],
+    datesEvenement:[ {id:uid(),label:"Ouverture",date:"2026-06-29"} ] },
+  { id:"marches", label:"Marchés Publics MTL", color:"#5F5E5A", budgetHeures:12, actif:true, dateProchaine:null,
+    lieu:"Jean-Talon, Atwater, Maisonneuve", statutProjet:"planification", ordre:6,
+    description:"Programmation culinaire récurrente dans les marchés publics de Montréal.",
+    notes:"Programmation à confirmer pour chaque marché.",
+    responsables:[],
+    datesEvenement:[] },
+  { id:"survenants", label:"Les Survenants — Général", color:"#E87562", budgetHeures:40, actif:true, dateProchaine:null,
+    lieu:"", statutProjet:"production", ordre:0,
+    description:"Communications et présence institutionnelle de l'OBNL Les Survenants : site web, réseaux sociaux, calendrier éditorial, templates et identité visuelle de la marque.",
+    notes:"Section transversale — tâches non liées à un événement spécifique.",
+    responsables:["Rémy Hampele"],
+    datesEvenement:[] },
+];
+
 function makeTache(overrides) {
-  return { id:uid(), statut:"todo", priorite:"normale", createdAt:new Date().toISOString(), ...overrides };
+  return { id:uid(), statut:"todo", priorite:"normale", tags:[], sousTaches:[], createdAt:new Date().toISOString(), ...overrides };
 }
 
 function generateSeedTaches() {
   const t = [];
-  const now = new Date().toISOString();
 
   // LPV
   [
@@ -147,7 +229,45 @@ function generateSeedTaches() {
     { titre:"Programmation Maisonneuve", heuresEstimees:4, categorie:"Logistique" },
   ].forEach(x => t.push(makeTache({ evenementId:"marches", ...x })));
 
+  // Les Survenants — Général (comm institutionnelle)
+  [
+    { titre:"Publications save the date — prochains événements (RS)",  heuresEstimees:3,   categorie:"Social",    priorite:"haute",
+      tags:["save-the-date","templates"] },
+    { titre:"Création templates visuels save the date (format stories + feed)", heuresEstimees:4, categorie:"Social",
+      tags:["templates","identité-visuelle"] },
+    { titre:"Mise à jour site web Les Survenants (événements + saison 2026)", heuresEstimees:3, categorie:"Web",
+      tags:["site-web"] },
+    { titre:"Calendrier éditorial Les Survenants — juillet–septembre",  heuresEstimees:5,   categorie:"Comm",
+      tags:["calendrier-éditorial"] },
+    { titre:"Calendrier éditorial Les Survenants — octobre–décembre",   heuresEstimees:5,   categorie:"Comm",
+      tags:["calendrier-éditorial"] },
+    { titre:"Publication organique hebdomadaire (compte institutionnel RS)", heuresEstimees:10, categorie:"Social",
+      tags:["institutionnel"] },
+    { titre:"Newsletter Les Survenants — édition estivale",             heuresEstimees:4,   categorie:"Comm",
+      tags:["newsletter"] },
+    { titre:"Newsletter Les Survenants — édition automne",              heuresEstimees:4,   categorie:"Comm",
+      tags:["newsletter"] },
+    { titre:"Mise à jour des archives et bilans sur le site",           heuresEstimees:2,   categorie:"Web",
+      tags:["site-web","bilan"] },
+    { titre:"Stratégie de contenu RS — positionnement de la marque",    heuresEstimees:5,   categorie:"Comm",
+      tags:["stratégie","marque"] },
+    { titre:"Gestion de la communauté RS (commentaires, DM institutionnels)", heuresEstimees:5, categorie:"Social",
+      tags:["communauté"] },
+  ].forEach(x => t.push(makeTache({ evenementId:"survenants", sousTaches:[], ...x })));
+
   return t;
+}
+
+// ── DATE HELPERS ─────────────────────────────────────────────────────────────
+
+function parseDate(d) { return d ? new Date(d + 'T12:00:00') : null; }
+function fmtDate(d) { return d ? parseDate(d).toLocaleDateString('fr-CA') : ''; }
+function fmtDateLong(d) {
+  return d ? parseDate(d).toLocaleDateString('fr-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) : '';
+}
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function daysFromNow(n) {
+  const dt = new Date(); dt.setDate(dt.getDate()+n); return dt.toISOString().slice(0,10);
 }
 
 // ── HOOKS ──────────────────────────────────────────────────────────────────
@@ -166,6 +286,161 @@ function useLS(key, fallback) {
   return [val, set];
 }
 
+// ── INLINE EDIT COMPONENTS ───────────────────────────────────────────────────
+
+function InlineEdit({ value, onChange, multiline, placeholder, className, inputClassName }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value || '');
+  const ref = useRef(null);
+
+  function open() { setDraft(value || ''); setEditing(true); }
+  function commit() { setEditing(false); if ((draft || '') !== (value || '')) onChange(draft); }
+  function cancel() { setEditing(false); setDraft(value || ''); }
+
+  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select && ref.current.select(); } }, [editing]);
+
+  if (editing) {
+    if (multiline) {
+      return (
+        <textarea ref={ref} value={draft} rows={4}
+          onChange={e=>setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e=>{ if(e.key==='Escape'){e.preventDefault();cancel();} }}
+          className={inputClassName || "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-y"} />
+      );
+    }
+    return (
+      <input ref={ref} type="text" value={draft}
+        onChange={e=>setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e=>{ if(e.key==='Enter'){e.preventDefault();commit();} if(e.key==='Escape'){e.preventDefault();cancel();} }}
+        className={inputClassName || "w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"} />
+    );
+  }
+  const empty = !value;
+  return (
+    <div onClick={open}
+      className={(className || "") + " cursor-text rounded px-1 -mx-1 hover:bg-gray-100 transition-colors " + (multiline ? "whitespace-pre-wrap min-h-[1.5rem]" : "") + (empty ? " text-gray-400 italic" : "")}
+      title="Cliquer pour modifier">
+      {value || placeholder || 'Cliquer pour ajouter…'}
+    </div>
+  );
+}
+
+function InlineDate({ value, onChange, className }) {
+  const [editing, setEditing] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => { if (editing && ref.current) ref.current.focus(); }, [editing]);
+
+  if (editing) {
+    return (
+      <input ref={ref} type="date" value={value || ''}
+        onChange={e=>{ onChange(e.target.value); }}
+        onBlur={()=>setEditing(false)}
+        onKeyDown={e=>{ if(e.key==='Enter'||e.key==='Escape') setEditing(false); }}
+        className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
+    );
+  }
+  return (
+    <span className={"inline-flex items-center gap-1 " + (className || "")}>
+      <span onClick={()=>setEditing(true)} className="cursor-pointer hover:text-blue-600">
+        {value ? fmtDate(value) : <span className="text-gray-400 italic">Choisir une date</span>}
+      </span>
+      {value && (
+        <button onClick={()=>onChange('')} className="text-gray-300 hover:text-red-500" title="Effacer">×</button>
+      )}
+    </span>
+  );
+}
+
+function InlineSelect({ value, options, onChange, render }) {
+  const [open, setOpen] = useState(false);
+  const cur = options.find(o=>o.id===value) || options[0];
+  return (
+    <span className="relative inline-block">
+      <button onClick={()=>setOpen(o=>!o)}>
+        {render ? render(cur) : (
+          <span className="text-xs px-2.5 py-1 rounded-full font-medium text-white" style={{backgroundColor:cur.color||'#6b7280'}}>{cur.label}</span>
+        )}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={()=>setOpen(false)} />
+          <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]">
+            {options.map(o=>(
+              <button key={o.id} onClick={()=>{ onChange(o.id); setOpen(false); }}
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 flex items-center gap-2">
+                {o.color && <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor:o.color}} />}
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
+// ── TAG + SUBTASK INPUTS ─────────────────────────────────────────────────────
+
+function TagInput({ tags, onChange }) {
+  const [draft, setDraft] = useState('');
+  function add(v) {
+    const tag = v.trim();
+    if (tag && !tags.includes(tag)) onChange([...tags, tag]);
+    setDraft('');
+  }
+  function key(e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(draft); }
+    else if (e.key === 'Backspace' && !draft && tags.length) onChange(tags.slice(0,-1));
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5 border border-gray-300 rounded-lg px-2 py-1.5 focus-within:ring-2 focus-within:ring-gray-400">
+      {tags.map(t=>(
+        <span key={t} className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
+          {t}
+          <button type="button" onClick={()=>onChange(tags.filter(x=>x!==t))} className="text-gray-400 hover:text-red-500">×</button>
+        </span>
+      ))}
+      <input type="text" value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={key}
+        onBlur={()=>add(draft)}
+        className="flex-1 min-w-[100px] text-sm focus:outline-none border-0 p-0" placeholder="Ajouter un tag (Entrée)…" />
+    </div>
+  );
+}
+
+function SubtaskList({ items, onChange }) {
+  const [draft, setDraft] = useState('');
+  function add() {
+    const titre = draft.trim();
+    if (!titre) return;
+    onChange([...items, { id:uid(), titre, fait:false }]);
+    setDraft('');
+  }
+  function toggle(id) { onChange(items.map(s=>s.id===id?{...s,fait:!s.fait}:s)); }
+  function remove(id) { onChange(items.filter(s=>s.id!==id)); }
+  const done = items.filter(s=>s.fait).length;
+  return (
+    <div className="space-y-1.5">
+      {items.length>0 && <p className="text-xs text-gray-400">{done}/{items.length} complétées</p>}
+      {items.map(s=>(
+        <div key={s.id} className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={s.fait} onChange={()=>toggle(s.id)} className="rounded" />
+          <span className={"flex-1 " + (s.fait?'line-through text-gray-400':'text-gray-700')}>{s.titre}</span>
+          <button type="button" onClick={()=>remove(s.id)} className="text-gray-300 hover:text-red-500">×</button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <input type="text" value={draft} onChange={e=>setDraft(e.target.value)}
+          onKeyDown={e=>{ if(e.key==='Enter'){e.preventDefault();add();} }}
+          className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+          placeholder="Nouvelle sous-tâche (Entrée)…" />
+        <button type="button" onClick={add} className="text-xs px-2.5 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-600">+</button>
+      </div>
+    </div>
+  );
+}
+
 // ── UI ATOMS ───────────────────────────────────────────────────────────────
 
 function Badge({ cat }) {
@@ -177,6 +452,17 @@ function PriDot({ p }) {
   return <span className={`w-2.5 h-2.5 rounded-full inline-block flex-shrink-0 ${PRI_DOT[p]}`} title={labels[p]} />;
 }
 
+function TaskTags({ tags }) {
+  if (!tags || !tags.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {tags.map(t=>(
+        <span key={t} className="text-[10px] bg-gray-100 text-gray-600 rounded px-1.5 py-0.5">#{t}</span>
+      ))}
+    </div>
+  );
+}
+
 function Bar({ value, max, color }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   const barColor = pct >= 100 ? '#ef4444' : pct >= 80 ? '#f97316' : color;
@@ -184,6 +470,28 @@ function Bar({ value, max, color }) {
     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
       <div className="h-full rounded-full transition-all" style={{ width:`${pct}%`, backgroundColor:barColor }} />
     </div>
+  );
+}
+
+function DonutChart({ segments, size=160, stroke=22 }) {
+  const radius = (size - stroke) / 2;
+  const C = 2 * Math.PI * radius;
+  const total = segments.reduce((s,x)=>s+x.value,0) || 1;
+  let acc = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform:'rotate(-90deg)' }}>
+      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#e5e7eb" strokeWidth={stroke} />
+      {segments.map((seg,i)=>{
+        const len = (seg.value/total) * C;
+        const el = (
+          <circle key={i} cx={size/2} cy={size/2} r={radius} fill="none"
+            stroke={seg.color} strokeWidth={stroke}
+            strokeDasharray={`${len} ${C}`} strokeDashoffset={-acc} />
+        );
+        acc += len;
+        return el;
+      })}
+    </svg>
   );
 }
 
@@ -212,7 +520,7 @@ function Modal({ open, onClose, title, size="md", children }) {
 
 // ── TASK FORM ──────────────────────────────────────────────────────────────
 
-function TaskForm({ task, defaults, evenements, onSave, onDelete, onClose }) {
+function TaskForm({ task, defaults, evenements, onSave, onDelete, onDuplicate, onClose }) {
   const isEdit = !!task;
   const active = evenements.filter(e => e.actif);
 
@@ -226,7 +534,9 @@ function TaskForm({ task, defaults, evenements, onSave, onDelete, onClose }) {
     heuresEstimees: task?.heuresEstimees != null ? String(task.heuresEstimees) : '',
     heuresReelles:  task?.heuresReelles  != null ? String(task.heuresReelles) : '',
     dateLimite:     task?.dateLimite     || '',
-    dateValidation: task?.dateValidation || new Date().toISOString().slice(0,10),
+    dateValidation: task?.dateValidation || todayISO(),
+    tags:           task?.tags           || [],
+    sousTaches:     task?.sousTaches      || [],
   });
   const [errs, setErrs] = useState({});
   const showVal = f.statut === 'termine';
@@ -262,6 +572,8 @@ function TaskForm({ task, defaults, evenements, onSave, onDelete, onClose }) {
       heuresReelles:  showVal && f.heuresReelles ? parseFloat(f.heuresReelles) : task?.heuresReelles,
       dateLimite:     f.dateLimite || undefined,
       dateValidation: showVal ? f.dateValidation : task?.dateValidation,
+      tags:           f.tags,
+      sousTaches:     f.sousTaches,
     });
   }
 
@@ -325,6 +637,16 @@ function TaskForm({ task, defaults, evenements, onSave, onDelete, onClose }) {
         </div>
       </div>
 
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
+        <TagInput tags={f.tags} onChange={v=>ch('tags',v)} />
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Sous-tâches</label>
+        <SubtaskList items={f.sousTaches} onChange={v=>ch('sousTaches',v)} />
+      </div>
+
       {suggestions.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-xs font-semibold text-blue-700 mb-2">💡 Suggestions d'estimation</p>
@@ -361,11 +683,17 @@ function TaskForm({ task, defaults, evenements, onSave, onDelete, onClose }) {
       )}
 
       <div className="flex items-center justify-between pt-2 border-t">
-        <div>
+        <div className="flex gap-3">
           {isEdit && onDelete && (
             <button type="button" onClick={onDelete}
               className="text-xs text-red-400 hover:text-red-600 transition-colors">
               Supprimer
+            </button>
+          )}
+          {isEdit && onDuplicate && (
+            <button type="button" onClick={onDuplicate}
+              className="text-xs text-gray-400 hover:text-gray-700 transition-colors">
+              Dupliquer
             </button>
           )}
         </div>
@@ -387,7 +715,9 @@ function TaskForm({ task, defaults, evenements, onSave, onDelete, onClose }) {
 // ── EVENT MANAGER ──────────────────────────────────────────────────────────
 
 function EventManager({ evenements, onSave, onClose }) {
-  const [list, setList] = useState(evenements.map(e=>({...e})));
+  const [list, setList] = useState(
+    [...evenements].sort((a,b)=>(a.ordre??0)-(b.ordre??0)).map(e=>({...e}))
+  );
   const [warn, setWarn] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [nf, setNf] = useState({ label:'', color:'#6366f1', budgetHeures:'10' });
@@ -407,11 +737,26 @@ function EventManager({ evenements, onSave, onClose }) {
     setList(l => l.map(e => e.id===id ? {...e, budgetHeures:parseFloat(v)||0} : e));
   }
 
+  function move(idx, dir) {
+    setList(l => {
+      const arr = [...l];
+      const j = idx + dir;
+      if (j < 0 || j >= arr.length) return arr;
+      [arr[idx], arr[j]] = [arr[j], arr[idx]];
+      return arr.map((e,i)=>({...e, ordre:i}));
+    });
+  }
+
   function addEvent() {
     if (!nf.label.trim()) return;
-    setList(l => [...l, { id:uid(), label:nf.label.trim(), color:nf.color, budgetHeures:parseFloat(nf.budgetHeures)||0, actif:true }]);
+    setList(l => [...l, { id:uid(), label:nf.label.trim(), color:nf.color, budgetHeures:parseFloat(nf.budgetHeures)||0,
+      actif:true, ordre:l.length, lieu:'', description:'', notes:'', statutProjet:'planification', responsables:[], datesEvenement:[] }]);
     setNf({ label:'', color:'#6366f1', budgetHeures:'10' });
     setShowNew(false);
+  }
+
+  function save() {
+    onSave(list.map((e,i)=>({...e, ordre:i})));
   }
 
   return (
@@ -426,8 +771,12 @@ function EventManager({ evenements, onSave, onClose }) {
         </div>
       )}
 
-      {list.map(evt => (
+      {list.map((evt,idx) => (
         <div key={evt.id} className={`flex items-center gap-3 p-3 rounded-lg border ${evt.actif?'bg-white border-gray-200':'bg-gray-50 border-gray-200 opacity-60'}`}>
+          <div className="flex flex-col">
+            <button onClick={()=>move(idx,-1)} disabled={idx===0} className="text-gray-400 hover:text-gray-700 disabled:opacity-30 leading-none">▲</button>
+            <button onClick={()=>move(idx,1)} disabled={idx===list.length-1} className="text-gray-400 hover:text-gray-700 disabled:opacity-30 leading-none">▼</button>
+          </div>
           <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{backgroundColor:evt.color}} />
           <span className="flex-1 text-sm font-medium text-gray-800 truncate">{evt.label}</span>
           <div className="flex items-center gap-1">
@@ -476,7 +825,189 @@ function EventManager({ evenements, onSave, onClose }) {
 
       <div className="flex justify-end gap-2 pt-2 border-t">
         <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Annuler</button>
-        <button onClick={()=>onSave(list)} className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-700">Sauvegarder</button>
+        <button onClick={save} className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-700">Sauvegarder</button>
+      </div>
+    </div>
+  );
+}
+
+// ── EVENT SHEET (FICHE ÉVÉNEMENT) ─────────────────────────────────────────────
+
+function EventSheet({ evenement, taches, onUpdateEvent, onEditTask, onAddTask }) {
+  const [copied, setCopied] = useState(false);
+  const evt = evenement;
+  const et = taches.filter(t=>t.evenementId===evt.id);
+
+  const stats = {
+    total: et.length,
+    todo: et.filter(t=>t.statut==='todo').length,
+    en_cours: et.filter(t=>t.statut==='en_cours').length,
+    termine: et.filter(t=>t.statut==='termine').length,
+    heuresReelles: et.filter(t=>t.statut==='termine').reduce((s,t)=>s+(t.heuresReelles||0),0),
+  };
+
+  function patch(k, v) { onUpdateEvent({ ...evt, [k]:v }); }
+
+  function addDate() {
+    patch('datesEvenement', [...(evt.datesEvenement||[]), { id:uid(), label:'Nouvelle date', date:'' }]);
+  }
+  function updDate(id, k, v) {
+    patch('datesEvenement', (evt.datesEvenement||[]).map(d=>d.id===id?{...d,[k]:v}:d));
+  }
+  function rmDate(id) {
+    patch('datesEvenement', (evt.datesEvenement||[]).filter(d=>d.id!==id));
+  }
+
+  const sp = STATUTS_PROJET.find(s=>s.id===evt.statutProjet) || STATUTS_PROJET[0];
+
+  function copyRecap() {
+    const lines = [];
+    lines.push(`# ${evt.label}`);
+    lines.push(`Statut : ${sp.label}`);
+    if (evt.lieu) lines.push(`Lieu : ${evt.lieu}`);
+    if (evt.responsables?.length) lines.push(`Responsables : ${evt.responsables.join(', ')}`);
+    if (evt.description) lines.push(`\n${evt.description}`);
+    if ((evt.datesEvenement||[]).length) {
+      lines.push(`\n## Dates clés`);
+      evt.datesEvenement.forEach(d=> lines.push(`- ${d.label}${d.date?` : ${fmtDate(d.date)}`:''}`));
+    }
+    lines.push(`\n## Tâches (${stats.termine}/${stats.total})`);
+    et.forEach(t=> lines.push(`- [${t.statut==='termine'?'x':' '}] ${t.titre}`));
+    const text = lines.join('\n');
+    navigator.clipboard.writeText(text).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
+  }
+
+  function evtColor() { return evt.color; }
+
+  return (
+    <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      {/* Colored header band */}
+      <div className="rounded-xl p-5 text-white" style={{backgroundColor:evt.color}}>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="text-2xl font-bold">
+              <InlineEdit value={evt.label} onChange={v=>patch('label',v)}
+                className="text-white" inputClassName="w-full bg-white/20 text-white rounded px-2 py-1 text-2xl font-bold focus:outline-none" />
+            </div>
+            <p className="text-sm opacity-90 mt-1">
+              <InlineEdit value={evt.lieu} onChange={v=>patch('lieu',v)} placeholder="Lieu…"
+                className="text-white" inputClassName="bg-white/20 text-white rounded px-2 py-0.5 text-sm focus:outline-none" />
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <InlineSelect value={evt.statutProjet} options={STATUTS_PROJET} onChange={v=>patch('statutProjet',v)} />
+            <input type="color" value={evt.color} onChange={e=>patch('color',e.target.value)}
+              className="w-9 h-9 rounded cursor-pointer border-0 bg-transparent" title="Couleur" />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <p className="text-xs text-gray-500">Heures</p>
+          <p className="text-xl font-bold text-gray-900">{stats.heuresReelles}<span className="text-sm text-gray-400">/{evt.budgetHeures}h</span></p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <p className="text-xs text-gray-500">Total</p>
+          <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <p className="text-xs text-gray-500">À faire</p>
+          <p className="text-xl font-bold text-gray-700">{stats.todo}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <p className="text-xs text-gray-500">En cours</p>
+          <p className="text-xl font-bold text-blue-700">{stats.en_cours}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <p className="text-xs text-gray-500">Terminé</p>
+          <p className="text-xl font-bold text-green-700">{stats.termine}</p>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-5">
+        {/* Description */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Contexte / description</h3>
+          <div className="text-sm text-gray-700">
+            <InlineEdit value={evt.description} onChange={v=>patch('description',v)} multiline placeholder="Décrire le contexte de l'événement…" />
+          </div>
+        </div>
+        {/* Notes */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Notes</h3>
+          <div className="text-sm text-gray-700">
+            <InlineEdit value={evt.notes} onChange={v=>patch('notes',v)} multiline placeholder="Notes internes…" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-5">
+        {/* Responsables */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Responsables</h3>
+          <TagInput tags={evt.responsables||[]} onChange={v=>patch('responsables',v)} />
+        </div>
+        {/* Budget */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Budget heures</h3>
+          <div className="flex items-center gap-2">
+            <input type="number" min="0" value={evt.budgetHeures}
+              onChange={e=>patch('budgetHeures',parseFloat(e.target.value)||0)}
+              className="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400" />
+            <span className="text-sm text-gray-500">heures allouées</span>
+          </div>
+          <div className="mt-3"><Bar value={stats.heuresReelles} max={evt.budgetHeures} color={evt.color} /></div>
+        </div>
+      </div>
+
+      {/* Dates clés */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Dates clés</h3>
+          <button onClick={addDate} className="text-xs px-2.5 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-600">+ Ajouter</button>
+        </div>
+        <div className="space-y-2">
+          {(evt.datesEvenement||[]).length===0 && <p className="text-xs text-gray-400 italic">Aucune date enregistrée.</p>}
+          {(evt.datesEvenement||[]).map(d=>(
+            <div key={d.id} className="flex items-center gap-3">
+              <div className="flex-1">
+                <InlineEdit value={d.label} onChange={v=>updDate(d.id,'label',v)} placeholder="Libellé…" className="text-sm text-gray-700" />
+              </div>
+              <InlineDate value={d.date} onChange={v=>updDate(d.id,'date',v)} className="text-sm text-gray-600" />
+              <button onClick={()=>rmDate(d.id)} className="text-gray-300 hover:text-red-500">×</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tasks */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Tâches ({stats.total})</h3>
+          <button onClick={()=>onAddTask({evenementId:evt.id})} className="text-xs px-2.5 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-600">+ Ajouter</button>
+        </div>
+        <div className="space-y-1.5">
+          {et.length===0 && <p className="text-xs text-gray-400 italic">Aucune tâche.</p>}
+          {et.map(t=>(
+            <div key={t.id} onClick={()=>onEditTask(t)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${t.statut==='termine'?'bg-green-400':t.statut==='en_cours'?'bg-blue-400':'bg-gray-300'}`} />
+              <span className={`flex-1 text-sm truncate ${t.statut==='termine'?'line-through text-gray-400':'text-gray-700'}`}>{t.titre}</span>
+              <TaskTags tags={t.tags} />
+              <Badge cat={t.categorie} />
+              <span className="text-xs text-gray-400 flex-shrink-0">{t.heuresEstimees}h</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button onClick={copyRecap}
+          className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600">
+          {copied ? '✓ Copié !' : '📋 Copier le récap'}
+        </button>
       </div>
     </div>
   );
@@ -513,8 +1044,21 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
     };
   }), [active, taches]);
 
-  // Nearest upcoming event
-  const today = new Date().toISOString().slice(0,10);
+  // Velocity: tasks completed in last 7 days
+  const weekAgo = daysFromNow(-7);
+  const velocity = useMemo(() => taches.filter(t=>
+    t.statut==='termine' && t.dateValidation && t.dateValidation >= weekAgo
+  ).length, [taches]);
+
+  // This week: tasks due in next 7 days, not terminated
+  const next7 = daysFromNow(7);
+  const today = todayISO();
+  const thisWeek = useMemo(() => taches.filter(t=>{
+    const evt = evenements.find(e=>e.id===t.evenementId);
+    if (!evt?.actif) return false;
+    return t.dateLimite && t.statut!=='termine' && t.dateLimite >= today && t.dateLimite <= next7;
+  }).sort((a,b)=>a.dateLimite.localeCompare(b.dateLimite)), [taches, evenements]);
+
   const nextEvt = useMemo(() => {
     return active
       .filter(e=>e.dateProchaine && e.dateProchaine >= today)
@@ -533,6 +1077,12 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
     .sort((a,b)=>a.dateLimite.localeCompare(b.dateLimite)).slice(0,5);
   const enCours  = filteredTaches.filter(t=>t.statut==='en_cours');
   const todos    = filteredTaches.filter(t=>t.statut==='todo');
+
+  const donutSegments = [
+    { label:STATUTS[0].label, value:globalStats.todo,     color:STATUT_COLORS.todo },
+    { label:STATUTS[1].label, value:globalStats.en_cours, color:STATUT_COLORS.en_cours },
+    { label:STATUTS[2].label, value:globalStats.termine,  color:STATUT_COLORS.termine },
+  ];
 
   function evtColor(id) { return evenements.find(e=>e.id===id)?.color||'#888'; }
   function evtShort(id) {
@@ -557,33 +1107,72 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
         </button>
       </div>
 
-      {/* Next event banner */}
       {nextEvt && (
         <div className="rounded-xl p-4 text-white flex items-center gap-4" style={{backgroundColor:nextEvt.color}}>
           <div className="text-2xl">📅</div>
           <div>
             <p className="font-semibold">{nextEvt.label}</p>
-            <p className="text-sm opacity-90">
-              Prochain événement — {new Date(nextEvt.dateProchaine).toLocaleDateString('fr-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
-            </p>
+            <p className="text-sm opacity-90">Prochain événement — {fmtDateLong(nextEvt.dateProchaine)}</p>
           </div>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label:'Total',     val:globalStats.total,    cls:'text-gray-900', border:'border-gray-200' },
-          { label:'À faire',   val:globalStats.todo,     cls:'text-gray-700', border:'border-gray-200' },
-          { label:'En cours',  val:globalStats.en_cours, cls:'text-blue-700', border:'border-blue-200' },
-          { label:'Terminé',   val:globalStats.termine,  cls:'text-green-700',border:'border-green-200' },
-        ].map(s=>(
-          <div key={s.label} className={`bg-white rounded-xl border ${s.border} p-4`}>
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">{s.label}</p>
-            <p className={`text-3xl font-bold mt-1 ${s.cls}`}>{s.val}</p>
+      {/* Stats + donut + velocity */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="md:col-span-2 grid grid-cols-2 gap-3">
+          {[
+            { label:'Total',     val:globalStats.total,    cls:'text-gray-900', border:'border-gray-200' },
+            { label:'À faire',   val:globalStats.todo,     cls:'text-gray-700', border:'border-gray-200' },
+            { label:'En cours',  val:globalStats.en_cours, cls:'text-blue-700', border:'border-blue-200' },
+            { label:'Terminé',   val:globalStats.termine,  cls:'text-green-700',border:'border-green-200' },
+          ].map(s=>(
+            <div key={s.label} className={`bg-white rounded-xl border ${s.border} p-4`}>
+              <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">{s.label}</p>
+              <p className={`text-3xl font-bold mt-1 ${s.cls}`}>{s.val}</p>
+            </div>
+          ))}
+          <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+            <div className="text-2xl">⚡</div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{velocity}</p>
+              <p className="text-xs text-gray-500">tâche{velocity!==1?'s':''} terminée{velocity!==1?'s':''} cette semaine</p>
+            </div>
           </div>
-        ))}
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">Répartition</h2>
+          <div className="flex items-center gap-4">
+            <DonutChart segments={donutSegments} size={130} />
+            <div className="space-y-1.5">
+              {donutSegments.map(s=>(
+                <div key={s.label} className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor:s.color}} />
+                  <span className="text-gray-600">{s.label}</span>
+                  <span className="font-semibold text-gray-800 ml-auto">{s.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Cette semaine */}
+      {thisWeek.length > 0 && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+          <h2 className="text-sm font-semibold text-indigo-800 mb-3">🗓️ Cette semaine ({thisWeek.length})</h2>
+          <div className="space-y-2">
+            {thisWeek.map(t=>(
+              <div key={t.id} onClick={()=>onEditTask(t)}
+                className="flex items-center gap-3 cursor-pointer hover:opacity-75 transition-opacity">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{backgroundColor:evtColor(t.evenementId)}} />
+                <span className="text-sm text-gray-800 flex-1 truncate">{t.titre}</span>
+                <Badge cat={t.categorie} />
+                <span className="text-xs text-indigo-700 font-medium whitespace-nowrap">{fmtDate(t.dateLimite)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Event progress */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -617,7 +1206,6 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 flex-wrap">
         <select value={fEvt} onChange={e=>setFEvt(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white">
@@ -631,7 +1219,6 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
         </select>
       </div>
 
-      {/* Upcoming deadlines */}
       {upcoming.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
           <h2 className="text-sm font-semibold text-amber-800 mb-3">📅 Échéances proches</h2>
@@ -642,16 +1229,13 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{backgroundColor:evtColor(t.evenementId)}} />
                 <span className="text-sm text-gray-800 flex-1 truncate">{t.titre}</span>
                 <Badge cat={t.categorie} />
-                <span className="text-xs text-amber-700 font-medium whitespace-nowrap">
-                  {new Date(t.dateLimite).toLocaleDateString('fr-CA')}
-                </span>
+                <span className="text-xs text-amber-700 font-medium whitespace-nowrap">{fmtDate(t.dateLimite)}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* En cours */}
       {enCours.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">En cours ({enCours.length})</h2>
@@ -661,6 +1245,7 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
                 className="bg-white border border-blue-200 rounded-lg px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow">
                 <PriDot p={t.priorite} />
                 <span className="flex-1 text-sm text-gray-800 truncate">{t.titre}</span>
+                <TaskTags tags={t.tags} />
                 <Badge cat={t.categorie} />
                 <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium flex-shrink-0"
                   style={{backgroundColor:evtColor(t.evenementId)}}>{evtShort(t.evenementId)}</span>
@@ -671,7 +1256,6 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
         </div>
       )}
 
-      {/* À faire */}
       <div>
         <h2 className="text-sm font-semibold text-gray-700 mb-3">À faire ({todos.length})</h2>
         <div className="space-y-2">
@@ -680,6 +1264,7 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
               className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-center gap-3 cursor-pointer hover:shadow-sm hover:border-gray-300 transition-shadow">
               <PriDot p={t.priorite} />
               <span className="flex-1 text-sm text-gray-800 truncate">{t.titre}</span>
+              <TaskTags tags={t.tags} />
               <Badge cat={t.categorie} />
               <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium flex-shrink-0"
                 style={{backgroundColor:evtColor(t.evenementId)}}>{evtShort(t.evenementId)}</span>
@@ -699,25 +1284,40 @@ function DashboardView({ evenements, taches, onEditTask, onAddTask, onManageEven
 
 // ── KANBAN VIEW ────────────────────────────────────────────────────────────
 
-function KanbanCard({ task, isDragging, onDragStart, onDragEnd, onEdit }) {
+function KanbanCard({ task, isDragging, onDragStart, onDragEnd, onEdit, onQuickEdit }) {
+  const sub = task.sousTaches || [];
+  const subDone = sub.filter(s=>s.fait).length;
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [draft, setDraft] = useState(task.titre);
+  function commit() { setEditingTitle(false); if (draft.trim() && draft !== task.titre) onQuickEdit({...task, titre:draft.trim()}); }
   return (
-    <div draggable="true"
+    <div draggable={!editingTitle}
       onDragStart={e=>onDragStart(e,task.id)}
       onDragEnd={onDragEnd}
-      onClick={onEdit}
+      onClick={()=>{ if(!editingTitle) onEdit(); }}
       className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-all select-none ${isDragging?'opacity-30':''}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
-        <span className="text-sm font-medium text-gray-800 leading-snug">{task.titre}</span>
+        {editingTitle ? (
+          <input autoFocus value={draft} onClick={e=>e.stopPropagation()}
+            onChange={e=>setDraft(e.target.value)} onBlur={commit}
+            onKeyDown={e=>{ if(e.key==='Enter'){e.preventDefault();commit();} if(e.key==='Escape'){setEditingTitle(false);setDraft(task.titre);} }}
+            className="text-sm font-medium border border-gray-300 rounded px-1 py-0.5 w-full focus:outline-none focus:ring-1 focus:ring-gray-400" />
+        ) : (
+          <span className="text-sm font-medium text-gray-800 leading-snug"
+            onDoubleClick={e=>{ e.stopPropagation(); setDraft(task.titre); setEditingTitle(true); }}>
+            {task.titre}
+          </span>
+        )}
         <PriDot p={task.priorite} />
       </div>
       <div className="flex items-center gap-1.5 flex-wrap">
         <Badge cat={task.categorie} />
+        {sub.length>0 && <span className="text-xs text-gray-500">{subDone}/{sub.length} ✓</span>}
         <span className="text-xs text-gray-400 ml-auto">{task.heuresEstimees}h</span>
       </div>
+      <TaskTags tags={task.tags} />
       {task.dateLimite && (
-        <p className="mt-2 text-xs text-orange-600 font-medium">
-          📅 {new Date(task.dateLimite).toLocaleDateString('fr-CA')}
-        </p>
+        <p className="mt-2 text-xs text-orange-600 font-medium">📅 {fmtDate(task.dateLimite)}</p>
       )}
       {task.statut==='termine' && task.heuresReelles != null && (
         <p className="mt-1 text-xs text-green-600">✓ {task.heuresReelles}h réelles</p>
@@ -726,8 +1326,8 @@ function KanbanCard({ task, isDragging, onDragStart, onDragEnd, onEdit }) {
   );
 }
 
-function KanbanView({ evenements, taches, onUpdateTask, onAddTask, onEditTask }) {
-  const active = evenements.filter(e=>e.actif);
+function KanbanView({ evenements, taches, onUpdateTask, onAddTask, onEditTask, colLabels }) {
+  const active = evenements.filter(e=>e.actif).sort((a,b)=>(a.ordre??0)-(b.ordre??0));
   const [selEvt, setSelEvt] = useState(active[0]?.id||'');
   const [dragging, setDragging] = useState(null);
   const [overCol, setOverCol] = useState(null);
@@ -741,34 +1341,24 @@ function KanbanView({ evenements, taches, onUpdateTask, onAddTask, onEditTask })
     };
   }, [taches, selEvt]);
 
-  function onDragStart(e, id) {
-    setDragging(id);
-    e.dataTransfer.effectAllowed = 'move';
-  }
-  function onDragOver(e, col) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setOverCol(col);
-  }
+  function onDragStart(e, id) { setDragging(id); e.dataTransfer.effectAllowed = 'move'; }
+  function onDragOver(e, col) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOverCol(col); }
   function onDrop(e, newStatut) {
     e.preventDefault();
     if (dragging) {
       const task = taches.find(t=>t.id===dragging);
       if (task && task.statut !== newStatut) {
-        if (newStatut==='termine' && task.heuresReelles==null) {
-          onEditTask({...task, statut:'termine'});
-        } else {
-          onUpdateTask({...task, statut:newStatut});
-        }
+        if (newStatut==='termine' && task.heuresReelles==null) onEditTask({...task, statut:'termine'});
+        else onUpdateTask({...task, statut:newStatut});
       }
     }
     setDragging(null); setOverCol(null);
   }
 
   const colDefs = [
-    { id:'todo',     label:'À faire',  bg:'bg-gray-100',  hdr:'text-gray-700' },
-    { id:'en_cours', label:'En cours', bg:'bg-blue-50',   hdr:'text-blue-700' },
-    { id:'termine',  label:'Terminé',  bg:'bg-green-50',  hdr:'text-green-700' },
+    { id:'todo',     bg:'bg-gray-100',  hdr:'text-gray-700' },
+    { id:'en_cours', bg:'bg-blue-50',   hdr:'text-blue-700' },
+    { id:'termine',  bg:'bg-green-50',  hdr:'text-green-700' },
   ];
 
   return (
@@ -794,7 +1384,7 @@ function KanbanView({ evenements, taches, onUpdateTask, onAddTask, onEditTask })
             onDrop={e=>onDrop(e,col.id)}
             onDragLeave={()=>setOverCol(null)}>
             <div className={`flex items-center justify-between px-4 py-3 flex-shrink-0 ${col.hdr}`}>
-              <span className="font-semibold text-sm">{col.label}</span>
+              <span className="font-semibold text-sm">{colLabels[col.id] || DEFAULT_COL_LABELS[col.id]}</span>
               <span className="text-xs bg-white/60 rounded-full px-2 py-0.5">{cols[col.id].length}</span>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -803,7 +1393,8 @@ function KanbanView({ evenements, taches, onUpdateTask, onAddTask, onEditTask })
                   isDragging={dragging===task.id}
                   onDragStart={onDragStart}
                   onDragEnd={()=>{setDragging(null);setOverCol(null);}}
-                  onEdit={()=>onEditTask(task)} />
+                  onEdit={()=>onEditTask(task)}
+                  onQuickEdit={onUpdateTask} />
               ))}
               {col.id !== 'termine' && (
                 <button onClick={()=>onAddTask({evenementId:selEvt, statut:col.id})}
@@ -825,7 +1416,7 @@ function HourTrackingView({ evenements, taches, onUpdateEvenement }) {
   const [expanded, setExpanded] = useState({});
   const [editing, setEditing]   = useState({});
 
-  const active = evenements.filter(e=>e.actif);
+  const active = evenements.filter(e=>e.actif).sort((a,b)=>(a.ordre??0)-(b.ordre??0));
 
   const rows = useMemo(() => active.map(evt => {
     const et = taches.filter(t=>t.evenementId===evt.id);
@@ -841,9 +1432,7 @@ function HourTrackingView({ evenements, taches, onUpdateEvenement }) {
   }), {budget:0,estim:0,reelles:0});
 
   function toggleExp(id) { setExpanded(p=>({...p,[id]:!p[id]})); }
-
   function startEdit(id, v) { setEditing(p=>({...p,[id]:String(v)})); }
-
   function saveEdit(evt) {
     const v = parseFloat(editing[evt.id]);
     if (!isNaN(v)) onUpdateEvenement({...evt, budgetHeures:v});
@@ -978,36 +1567,136 @@ function HourTrackingView({ evenements, taches, onUpdateEvenement }) {
   );
 }
 
+// ── SETTINGS VIEW ────────────────────────────────────────────────────────────
+
+function SettingsView({ evenements, taches, colLabels, onSetColLabels, onImport }) {
+  const fileRef = useRef(null);
+  const [msg, setMsg] = useState(null);
+
+  function exportJSON() {
+    const data = { evenements, taches, exportedAt:new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='survenants-backup.json'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importJSON(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.evenements || !data.taches) throw new Error('Format invalide');
+        onImport(data.evenements, data.taches);
+        setMsg({ ok:true, text:`Importé : ${data.evenements.length} événements, ${data.taches.length} tâches.` });
+      } catch (err) {
+        setMsg({ ok:false, text:'Erreur : ' + err.message });
+      }
+      if (fileRef.current) fileRef.current.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  return (
+    <div className="p-6 space-y-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-gray-700">Sauvegarde et restauration</h2>
+        <p className="text-xs text-gray-500">Exportez vos données en JSON ou restaurez une sauvegarde précédente.</p>
+        <div className="flex gap-3 flex-wrap">
+          <button onClick={exportJSON}
+            className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-700">⬇ Exporter JSON</button>
+          <button onClick={()=>fileRef.current?.click()}
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">⬆ Importer JSON</button>
+          <input ref={fileRef} type="file" accept="application/json" onChange={importJSON} className="hidden" />
+        </div>
+        {msg && (
+          <p className={`text-xs ${msg.ok?'text-green-600':'text-red-600'}`}>{msg.text}</p>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-gray-700">Libellés des colonnes Kanban</h2>
+        <div className="grid grid-cols-3 gap-3">
+          {['todo','en_cours','termine'].map(k=>(
+            <div key={k}>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{DEFAULT_COL_LABELS[k]}</label>
+              <input type="text" value={colLabels[k] ?? DEFAULT_COL_LABELS[k]}
+                onChange={e=>onSetColLabels({...colLabels, [k]:e.target.value})}
+                className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400" />
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>onSetColLabels({...DEFAULT_COL_LABELS})}
+          className="text-xs text-gray-400 hover:text-gray-700">Réinitialiser les libellés</button>
+      </div>
+    </div>
+  );
+}
+
+// ── DATA MIGRATION ─────────────────────────────────────────────────────────
+
+function normalizeEvenements(list) {
+  const seedMap = {}; SEED_EVENEMENTS.forEach(e=>{ seedMap[e.id]=e; });
+  return list.map((e,i) => {
+    const seed = seedMap[e.id] || {};
+    return {
+      ...e,
+      lieu:           e.lieu           ?? seed.lieu ?? '',
+      description:    e.description    ?? seed.description ?? '',
+      notes:          e.notes          ?? seed.notes ?? '',
+      statutProjet:   e.statutProjet   ?? seed.statutProjet ?? 'planification',
+      responsables:   e.responsables   ?? seed.responsables ?? [],
+      datesEvenement: e.datesEvenement ?? seed.datesEvenement ?? [],
+      ordre:          e.ordre ?? seed.ordre ?? i,
+    };
+  });
+}
+
+function normalizeTaches(list) {
+  return list.map(t => ({ ...t, tags: t.tags ?? [], sousTaches: t.sousTaches ?? [] }));
+}
+
 // ── APP ────────────────────────────────────────────────────────────────────
 
 function App() {
   const [evenements, setEvenements] = useLS('survenants_evenements', null);
   const [taches,     setTaches]     = useLS('survenants_taches',     null);
+  const [settings,   setSettings]   = useLS('survenants_settings',   { colLabels:{...DEFAULT_COL_LABELS}, dark:false });
   const [view,  setView]  = useState('dashboard');
-  const [modal, setModal] = useState(null); // null | 'task' | 'events'
+  const [activeEventId, setActiveEventId] = useState(null);
+  const [modal, setModal] = useState(null);
   const [editTask,    setEditTask]    = useState(null);
   const [taskDefaults,setTaskDefaults]= useState({});
   const [resetWarn,   setResetWarn]   = useState(false);
+  const migrated = useRef(false);
 
-  // Seed on first launch
+  // Seed + migrate on first launch
   useEffect(() => {
-    if (!evenements) setEvenements(SEED_EVENEMENTS);
-    if (!taches)     setTaches(generateSeedTaches());
+    if (!evenements) { setEvenements(SEED_EVENEMENTS); }
+    else if (!migrated.current) { setEvenements(normalizeEvenements(evenements)); }
+    if (!taches) { setTaches(generateSeedTaches()); }
+    else if (!migrated.current) { setTaches(normalizeTaches(taches)); }
+    migrated.current = true;
   }, []);
+
+  // Dark mode body class
+  useEffect(() => {
+    document.body.classList.toggle('dark', !!settings.dark);
+  }, [settings.dark]);
 
   if (!evenements || !taches) {
     return <div className="flex h-screen items-center justify-center text-gray-400 text-sm">Chargement…</div>;
   }
 
-  function openAdd(defaults={}) {
-    setEditTask(null); setTaskDefaults(defaults); setModal('task');
-  }
-  function openEdit(task) {
-    setEditTask(task); setTaskDefaults({}); setModal('task');
-  }
-  function closeTask() {
-    setModal(null); setEditTask(null); setTaskDefaults({});
-  }
+  const colLabels = settings.colLabels || DEFAULT_COL_LABELS;
+
+  function openAdd(defaults={}) { setEditTask(null); setTaskDefaults(defaults); setModal('task'); }
+  function openEdit(task) { setEditTask(task); setTaskDefaults({}); setModal('task'); }
+  function closeTask() { setModal(null); setEditTask(null); setTaskDefaults({}); }
 
   function saveTask(t) {
     setTaches(p => {
@@ -1016,21 +1705,30 @@ function App() {
     });
     closeTask();
   }
-  function deleteTask(id) {
-    setTaches(p=>p.filter(t=>t.id!==id)); closeTask();
+  function deleteTask(id) { setTaches(p=>p.filter(t=>t.id!==id)); closeTask(); }
+  function updateTask(t) { setTaches(p=>p.map(x=>x.id===t.id?t:x)); }
+  function duplicateTask(task) {
+    const copy = { ...task, id:uid(), titre:'Copie — '+task.titre, statut:'todo',
+      heuresReelles:undefined, dateValidation:undefined, createdAt:new Date().toISOString() };
+    setTaches(p=>[...p, copy]);
+    closeTask();
   }
-  function updateTask(t) {
-    setTaches(p=>p.map(x=>x.id===t.id?t:x));
-  }
-  function saveEvents(evts) {
-    setEvenements(evts); setModal(null);
-  }
-  function updateEvt(evt) {
-    setEvenements(p=>p.map(e=>e.id===evt.id?evt:e));
-  }
+  function saveEvents(evts) { setEvenements(evts); setModal(null); }
+  function updateEvt(evt) { setEvenements(p=>p.map(e=>e.id===evt.id?evt:e)); }
   function reset() {
-    setEvenements(SEED_EVENEMENTS); setTaches(generateSeedTaches()); setResetWarn(false);
+    setEvenements(SEED_EVENEMENTS); setTaches(generateSeedTaches()); setResetWarn(false); setView('dashboard');
   }
+  function doImport(evts, tchs) {
+    setEvenements(normalizeEvenements(evts));
+    setTaches(normalizeTaches(tchs));
+    setView('dashboard');
+  }
+  function setColLabels(cl) { setSettings(s=>({...s, colLabels:cl})); }
+  function toggleDark() { setSettings(s=>({...s, dark:!s.dark})); }
+
+  function openEvent(id) { setActiveEventId(id); setView('evenement'); }
+
+  const activeEvent = evenements.find(e=>e.id===activeEventId);
 
   const navItems = [
     { id:'dashboard', label:'Dashboard', icon:
@@ -1050,16 +1748,18 @@ function App() {
     },
   ];
 
+  const sortedActive = evenements.filter(e=>e.actif).sort((a,b)=>(a.ordre??0)-(b.ordre??0));
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden" style={{background:'var(--bg)'}}>
       {/* Sidebar */}
-      <aside className="w-56 bg-gray-900 flex flex-col flex-shrink-0">
+      <aside className="w-56 flex flex-col flex-shrink-0" style={{background:'var(--sidebar)'}}>
         <div className="px-5 py-5 border-b border-gray-800">
           <p className="text-white font-bold text-sm tracking-tight">Les Survenants</p>
           <p className="text-gray-500 text-xs mt-0.5">Gestion de projet 2026</p>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="px-3 py-4 space-y-0.5">
           {navItems.map(n=>(
             <button key={n.id} onClick={()=>setView(n.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${view===n.id?'bg-gray-700 text-white':'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}>
@@ -1068,23 +1768,32 @@ function App() {
           ))}
         </nav>
 
-        {/* Event legend */}
-        <div className="px-5 py-4 border-t border-gray-800">
-          <p className="text-xs text-gray-600 uppercase tracking-wide mb-2">Événements</p>
-          <div className="space-y-1.5">
-            {evenements.filter(e=>e.actif).map(e=>(
-              <div key={e.id} className="flex items-center gap-2">
+        {/* Events list (clickable → EventSheet) */}
+        <div className="flex-1 overflow-y-auto px-3 py-2 border-t border-gray-800">
+          <p className="text-xs text-gray-600 uppercase tracking-wide mb-2 px-2">Événements</p>
+          <div className="space-y-0.5">
+            {sortedActive.map(e=>(
+              <button key={e.id} onClick={()=>openEvent(e.id)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${view==='evenement'&&activeEventId===e.id?'bg-gray-800':'hover:bg-gray-800'}`}>
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{backgroundColor:e.color}} />
                 <span className="text-xs text-gray-400 truncate">{e.label}</span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Reset */}
-        <div className="px-5 py-4 border-t border-gray-800">
+        {/* Paramètres + dark + reset */}
+        <div className="px-3 py-3 border-t border-gray-800 space-y-1">
+          <button onClick={()=>setView('parametres')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${view==='parametres'?'bg-gray-700 text-white':'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}>
+            ⚙ Paramètres
+          </button>
+          <button onClick={toggleDark}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors">
+            {settings.dark ? '☀ Mode clair' : '🌙 Mode sombre'}
+          </button>
           {resetWarn ? (
-            <div>
+            <div className="px-3 py-1">
               <p className="text-xs text-gray-400 mb-2">Réinitialiser toutes les données ?</p>
               <div className="flex gap-2">
                 <button onClick={reset} className="text-xs px-2.5 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Oui</button>
@@ -1092,7 +1801,7 @@ function App() {
               </div>
             </div>
           ) : (
-            <button onClick={()=>setResetWarn(true)} className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
+            <button onClick={()=>setResetWarn(true)} className="w-full text-left px-3 py-2 text-xs text-gray-600 hover:text-gray-400 transition-colors">
               ↺ Réinitialiser les données
             </button>
           )}
@@ -1108,11 +1817,18 @@ function App() {
         )}
         {view==='kanban' && (
           <KanbanView evenements={evenements} taches={taches}
-            onUpdateTask={updateTask} onAddTask={openAdd} onEditTask={openEdit} />
+            onUpdateTask={updateTask} onAddTask={openAdd} onEditTask={openEdit} colLabels={colLabels} />
         )}
         {view==='heures' && (
-          <HourTrackingView evenements={evenements} taches={taches}
-            onUpdateEvenement={updateEvt} />
+          <HourTrackingView evenements={evenements} taches={taches} onUpdateEvenement={updateEvt} />
+        )}
+        {view==='evenement' && activeEvent && (
+          <EventSheet evenement={activeEvent} taches={taches}
+            onUpdateEvent={updateEvt} onEditTask={openEdit} onAddTask={openAdd} />
+        )}
+        {view==='parametres' && (
+          <SettingsView evenements={evenements} taches={taches} colLabels={colLabels}
+            onSetColLabels={setColLabels} onImport={doImport} />
         )}
       </main>
 
@@ -1134,6 +1850,7 @@ function App() {
           evenements={evenements}
           onSave={saveTask}
           onDelete={editTask ? ()=>deleteTask(editTask.id) : undefined}
+          onDuplicate={editTask ? ()=>duplicateTask(editTask) : undefined}
           onClose={closeTask} />
       </Modal>
 
