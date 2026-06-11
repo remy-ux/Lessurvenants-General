@@ -1641,7 +1641,9 @@ function SettingsView({ evenements, taches, colLabels, onSetColLabels, onImport 
 
 function normalizeEvenements(list) {
   const seedMap = {}; SEED_EVENEMENTS.forEach(e=>{ seedMap[e.id]=e; });
-  return list.map((e,i) => {
+  const existingIds = new Set(list.map(e=>e.id));
+  // Fill in missing fields on existing events
+  const normalized = list.map((e,i) => {
     const seed = seedMap[e.id] || {};
     return {
       ...e,
@@ -1651,13 +1653,30 @@ function normalizeEvenements(list) {
       statutProjet:   e.statutProjet   ?? seed.statutProjet ?? 'planification',
       responsables:   e.responsables   ?? seed.responsables ?? [],
       datesEvenement: e.datesEvenement ?? seed.datesEvenement ?? [],
-      ordre:          e.ordre ?? seed.ordre ?? i,
+      ordre:          e.ordre          ?? seed.ordre ?? i,
     };
   });
+  // Append any new seed events not yet in localStorage
+  SEED_EVENEMENTS.forEach(seed => {
+    if (!existingIds.has(seed.id)) normalized.push({ ...seed });
+  });
+  // Sort by ordre
+  normalized.sort((a,b) => (a.ordre ?? 99) - (b.ordre ?? 99));
+  return normalized;
 }
 
-function normalizeTaches(list) {
-  return list.map(t => ({ ...t, tags: t.tags ?? [], sousTaches: t.sousTaches ?? [] }));
+function normalizeTaches(list, evenements) {
+  const normalized = list.map(t => ({ ...t, tags: t.tags ?? [], sousTaches: t.sousTaches ?? [] }));
+  // Append seed tasks for any event that has no tasks yet
+  const seedTaches = generateSeedTaches();
+  const existingEvtIds = new Set(normalized.map(t=>t.evenementId));
+  const knownEvtIds = new Set((evenements||[]).map(e=>e.id));
+  seedTaches.forEach(st => {
+    if (!existingEvtIds.has(st.evenementId) && knownEvtIds.has(st.evenementId)) {
+      normalized.push(st);
+    }
+  });
+  return normalized;
 }
 
 // ── APP ────────────────────────────────────────────────────────────────────
@@ -1677,9 +1696,16 @@ function App() {
   // Seed + migrate on first launch
   useEffect(() => {
     if (!evenements) { setEvenements(SEED_EVENEMENTS); }
-    else if (!migrated.current) { setEvenements(normalizeEvenements(evenements)); }
+    else if (!migrated.current) {
+      const normalizedEvts = normalizeEvenements(evenements);
+      setEvenements(normalizedEvts);
+      if (!taches) { setTaches(generateSeedTaches()); }
+      else { setTaches(normalizeTaches(taches, normalizedEvts)); }
+      migrated.current = true;
+      return;
+    }
     if (!taches) { setTaches(generateSeedTaches()); }
-    else if (!migrated.current) { setTaches(normalizeTaches(taches)); }
+    else if (!migrated.current) { setTaches(normalizeTaches(taches, evenements)); }
     migrated.current = true;
   }, []);
 
@@ -1719,8 +1745,9 @@ function App() {
     setEvenements(SEED_EVENEMENTS); setTaches(generateSeedTaches()); setResetWarn(false); setView('dashboard');
   }
   function doImport(evts, tchs) {
-    setEvenements(normalizeEvenements(evts));
-    setTaches(normalizeTaches(tchs));
+    const ne = normalizeEvenements(evts);
+    setEvenements(ne);
+    setTaches(normalizeTaches(tchs, ne));
     setView('dashboard');
   }
   function setColLabels(cl) { setSettings(s=>({...s, colLabels:cl})); }
