@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Les Survenants — Logo Animation</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    body { display: flex; align-items: center; justify-content: center; }
+    #c { display: block; width: 1080px; height: 1080px; }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
+
+// ─── Canvas size ─────────────────────────────────────────────────────────────
+const W = 1080, H = 1080;
+
+// ─── Renderer ────────────────────────────────────────────────────────────────
+const canvas   = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(W, H);
+renderer.setPixelRatio(1);
+renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.outputColorSpace    = THREE.SRGBColorSpace;
+
+// ─── Scene / Camera ──────────────────────────────────────────────────────────
+const scene  = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+camera.position.set(0, 0, 7.5);
+
+// ─── Logo texture (try logo.png → canvas fallback) ───────────────────────────
+function makeCanvasLogo() {
+  const S = 1024;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const ctx = cv.getContext('2d');
+
+  // Dark fill
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, S, S);
+
+  // Clip to circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(S/2, S/2, S/2 - 2, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Purple gradient sphere bg
+  const grad = ctx.createRadialGradient(S*0.38, S*0.32, S*0.05, S/2, S/2, S*0.5);
+  grad.addColorStop(0,   '#6a5acd');
+  grad.addColorStop(0.35,'#4a3ab0');
+  grad.addColorStop(0.7, '#2d2285');
+  grad.addColorStop(1,   '#0a0820');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, S, S);
+
+  // Horizontal scan lines (lower 45%)
+  ctx.save();
+  const lineTop = S * 0.55;
+  for (let y = lineTop; y < S; y += S * 0.013) {
+    const alpha = 0.12 + 0.08 * ((y - lineTop) / (S - lineTop));
+    ctx.strokeStyle = `rgba(160,140,255,${alpha})`;
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(S, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Outer neon rim
+  const rim = ctx.createRadialGradient(S/2, S/2, S*0.44, S/2, S/2, S*0.5);
+  rim.addColorStop(0,   'rgba(140,120,255,0)');
+  rim.addColorStop(0.7, 'rgba(140,120,255,0.12)');
+  rim.addColorStop(1,   'rgba(180,160,255,0.55)');
+  ctx.fillStyle = rim;
+  ctx.fillRect(0, 0, S, S);
+
+  ctx.restore(); // end clip
+
+  // ── Text ──────────────────────────────────────────────────────────────────
+  ctx.save();
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+
+  // "LES" – small caps
+  ctx.font      = `400 ${S*0.092}px "Arial Narrow", Arial, sans-serif`;
+  ctx.letterSpacing = `${S*0.025}px`;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.shadowColor = 'rgba(160,140,255,0.9)';
+  ctx.shadowBlur  = 22;
+  ctx.fillText('LES', S * 0.44, S * 0.30);
+
+  // "SURVENANTS" – large condensed bold
+  ctx.font         = `900 ${S*0.175}px "Arial Narrow", Arial, sans-serif`;
+  ctx.letterSpacing = `${S*0.006}px`;
+  ctx.shadowBlur   = 30;
+  ctx.shadowColor  = 'rgba(120,100,255,1)';
+
+  // Dark stroke (the thick outline effect)
+  ctx.strokeStyle = '#0a0820';
+  ctx.lineWidth   = S * 0.022;
+  ctx.lineJoin    = 'round';
+  ctx.strokeText('SURVENANTS', S/2, S * 0.465);
+
+  // White glow fill
+  ctx.fillStyle  = '#fff';
+  ctx.shadowBlur = 24;
+  ctx.fillText('SURVENANTS', S/2, S * 0.465);
+
+  ctx.restore();
+
+  // ── Sparkle stars ─────────────────────────────────────────────────────────
+  const stars = [
+    { x: 0.36, y: 0.17, s: 0.018 },
+    { x: 0.62, y: 0.21, s: 0.030 },
+    { x: 0.72, y: 0.14, s: 0.012 },
+    { x: 0.28, y: 0.26, s: 0.009 },
+    { x: 0.79, y: 0.28, s: 0.008 },
+  ];
+  stars.forEach(({ x, y, s }) => drawStar(ctx, x*S, y*S, s*S));
+
+  return cv;
+}
+
+function drawStar(ctx, cx, cy, size) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle   = '#fff';
+  ctx.shadowColor = 'rgba(200,190,255,1)';
+  ctx.shadowBlur  = size * 4;
+  // 4-point star
+  for (let a = 0; a < Math.PI*2; a += Math.PI/2) {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    const ax = Math.cos(a) * size * 0.18;
+    const ay = Math.sin(a) * size * 0.18;
+    const bx = Math.cos(a + Math.PI/4) * size * 0.06;
+    const by = Math.sin(a + Math.PI/4) * size * 0.06;
+    const ex = Math.cos(a) * size;
+    const ey = Math.sin(a) * size;
+    ctx.moveTo(bx, by);
+    ctx.quadraticCurveTo(ax, ay, ex, ey);
+    ctx.quadraticCurveTo(ax, ay, -bx, -by);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+async function loadLogoTexture() {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload  = () => { const t = new THREE.Texture(img); t.needsUpdate = true; resolve(t); };
+    img.onerror = () => {
+      const cv = makeCanvasLogo();
+      const t  = new THREE.CanvasTexture(cv);
+      resolve(t);
+    };
+    img.src = 'logo.png';
+  });
+}
+
+const logoTex = await loadLogoTexture();
+logoTex.colorSpace = THREE.SRGBColorSpace;
+
+// ─── Environment map (fake metallic reflections) ─────────────────────────────
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envScene = new THREE.Scene();
+
+// Add coloured lights into the env scene to bake env map
+const envColors = [0x9977ff, 0x6644dd, 0xffffff, 0x4422cc];
+envColors.forEach((c, i) => {
+  const l = new THREE.PointLight(c, 3);
+  const a = (i / envColors.length) * Math.PI * 2;
+  l.position.set(Math.cos(a)*4, Math.sin(a)*2, Math.sin(a)*4);
+  envScene.add(l);
+});
+const envMap = pmrem.fromScene(envScene, 0, 0.1, 50).texture;
+scene.environment = envMap;
+
+// ─── Coin ────────────────────────────────────────────────────────────────────
+const COIN_R = 2.6;
+const COIN_D = 0.18;
+
+// Separate materials for face vs edge
+const faceMat = new THREE.MeshStandardMaterial({
+  map:              logoTex,
+  metalness:        0.75,
+  roughness:        0.18,
+  envMap,
+  envMapIntensity:  1.4,
+});
+const edgeMat = new THREE.MeshStandardMaterial({
+  color:            0x8866ee,
+  metalness:        0.95,
+  roughness:        0.08,
+  envMap,
+  envMapIntensity:  2.0,
+  emissive:         new THREE.Color(0x220044),
+  emissiveIntensity: 0.4,
+});
+
+const coinGeo = new THREE.CylinderGeometry(COIN_R, COIN_R, COIN_D, 128, 1, false);
+
+// Split geometry groups: 0 = top, 1 = bottom, 2 = side
+const coin = new THREE.Mesh(coinGeo, [faceMat, faceMat, edgeMat]);
+coin.rotation.x = Math.PI / 2; // face toward camera initially
+scene.add(coin);
+
+// Neon glow ring around edge
+const ringGeo = new THREE.TorusGeometry(COIN_R + 0.04, 0.055, 24, 128);
+const ringMat = new THREE.MeshBasicMaterial({
+  color:       0x9966ff,
+  transparent: true,
+  opacity:     0.7,
+  blending:    THREE.AdditiveBlending,
+  depthWrite:  false,
+});
+const ring = new THREE.Mesh(ringGeo, ringMat);
+coin.add(ring); // child of coin so it rotates with it
+
+// ─── Stars ───────────────────────────────────────────────────────────────────
+const STAR_COUNT = 280;
+const starPos    = new Float32Array(STAR_COUNT * 3);
+const starPhase  = new Float32Array(STAR_COUNT);
+const starFreq   = new Float32Array(STAR_COUNT);
+
+for (let i = 0; i < STAR_COUNT; i++) {
+  // Keep stars away from the center where the coin is
+  let x, y, z, dist;
+  do {
+    x = (Math.random() - 0.5) * 22;
+    y = (Math.random() - 0.5) * 22;
+    z = (Math.random() - 0.5) * 8 - 2;
+    dist = Math.sqrt(x*x + y*y);
+  } while (dist < 3.8);
+
+  starPos[i*3]   = x;
+  starPos[i*3+1] = y;
+  starPos[i*3+2] = z;
+  starPhase[i]   = Math.random() * Math.PI * 2;
+  starFreq[i]    = 0.4 + Math.random() * 1.6;
+}
+
+const starGeo = new THREE.BufferGeometry();
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starAlpha = new Float32Array(STAR_COUNT).fill(1);
+starGeo.setAttribute('color', new THREE.BufferAttribute(
+  new Float32Array(STAR_COUNT * 3).fill(1), 3
+));
+
+const starMat = new THREE.PointsMaterial({
+  size:         0.055,
+  sizeAttenuation: true,
+  transparent:  true,
+  opacity:      0.85,
+  blending:     THREE.AdditiveBlending,
+  depthWrite:   false,
+  vertexColors: false,
+  color:        0xddccff,
+});
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// A few bright big-star sparkles
+const bigStarPos = new Float32Array([
+  -4.2, 3.5, -1,
+   4.8, 2.1, -1,
+  -3.0,-3.8, -1,
+   3.5,-2.9, -1,
+   0.2, 4.9, -1,
+]);
+const bigStarGeo = new THREE.BufferGeometry();
+bigStarGeo.setAttribute('position', new THREE.BufferAttribute(bigStarPos, 3));
+const bigStarMat = new THREE.PointsMaterial({
+  size:      0.18,
+  color:     0xffffff,
+  transparent: true,
+  opacity:   0.9,
+  blending:  THREE.AdditiveBlending,
+  depthWrite: false,
+});
+const bigStars = new THREE.Points(bigStarGeo, bigStarMat);
+scene.add(bigStars);
+
+// ─── Lights ──────────────────────────────────────────────────────────────────
+const ambLight = new THREE.AmbientLight(0x220044, 1.2);
+scene.add(ambLight);
+
+// Main orbiting highlight (creates moving metallic reflections)
+const keyLight = new THREE.PointLight(0xffffff, 12, 20);
+scene.add(keyLight);
+
+// Purple neon fill
+const neonLight = new THREE.PointLight(0x8855ff, 8, 18);
+neonLight.position.set(0, 0, 4);
+scene.add(neonLight);
+
+// Rim back light
+const rimLight = new THREE.PointLight(0x6633cc, 5, 15);
+rimLight.position.set(0, 0, -6);
+scene.add(rimLight);
+
+// Secondary orbit (opposite phase)
+const fillLight = new THREE.PointLight(0xaa88ff, 4, 16);
+scene.add(fillLight);
+
+// ─── Post-processing bloom ───────────────────────────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(W, H),
+  /*strength*/ 1.1,
+  /*radius*/   0.55,
+  /*threshold*/0.22
+);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ─── Per-frame star opacity buffer ──────────────────────────────────────────
+// We'll animate star opacity via material (global) + individual alpha hack
+// Since PointsMaterial doesn't support per-point opacity easily,
+// we animate the whole material opacity slightly and the bigStars separately
+
+// ─── Animation loop ──────────────────────────────────────────────────────────
+const LOOP = 5.0; // seconds per full rotation
+let   last  = performance.now() * 0.001;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const now   = performance.now() * 0.001;
+  const delta = now - last;
+  last        = now;
+
+  // Coin rotation — exact 5-second loop
+  coin.rotation.z += (Math.PI * 2 / LOOP) * delta; // rotate on Z (face-forward after X rotation)
+
+  // Key light orbits in a tilted ellipse → creates sweeping metallic highlights
+  const angle  = now * (Math.PI * 2 / LOOP);
+  keyLight.position.set(
+    Math.cos(angle)  * 5.5,
+    Math.sin(angle)  * 1.8,
+    Math.sin(angle * 0.7) * 2 + 3
+  );
+  fillLight.position.set(
+    Math.cos(angle + Math.PI) * 4,
+    Math.sin(angle + Math.PI) * 1.5,
+    Math.sin(angle * 0.7 + Math.PI) * 2 + 2
+  );
+
+  // Neon light subtle pulse
+  neonLight.intensity = 7 + Math.sin(now * 2.3) * 1.2;
+
+  // Ring glow pulse
+  ringMat.opacity = 0.55 + 0.2 * Math.sin(now * 1.8);
+
+  // Star twinkling — animate bigStar opacity
+  bigStarMat.opacity = 0.7 + 0.25 * Math.sin(now * 1.1);
+
+  // General star field subtle flicker
+  starMat.opacity = 0.75 + 0.12 * Math.sin(now * 0.7 + 1.2);
+
+  composer.render();
+}
+
+animate();
+</script>
+</body>
+</html>
