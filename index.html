@@ -380,9 +380,9 @@
       object-fit: cover;
     }
 
-    /* ─── TEASER ─── */
+    /* ─── TEASER (fond cream) ─── */
     .teaser {
-      background: var(--coral);
+      background: var(--cream);
       padding: clamp(72px, 12vw, 140px) clamp(24px, 6vw, 80px) clamp(80px, 12vw, 150px);
       text-align: center;
       position: relative;
@@ -395,7 +395,7 @@
       transform: translate(-50%, -50%);
       width: 700px; height: 700px;
       border-radius: 50%;
-      border: 1px solid rgba(250,235,210,.1);
+      border: 1px solid rgba(45,40,90,.06);
       pointer-events: none;
     }
     .teaser::after {
@@ -405,7 +405,7 @@
       transform: translate(-50%, -50%);
       width: 1000px; height: 1000px;
       border-radius: 50%;
-      border: 1px solid rgba(250,235,210,.05);
+      border: 1px solid rgba(45,40,90,.03);
       pointer-events: none;
     }
     .teaser-inner {
@@ -414,8 +414,8 @@
       margin: 0 auto;
     }
     .teaser .tag {
-      color: var(--gold);
-      border-color: rgba(230,185,65,.5);
+      color: var(--coral-dk);
+      border-color: rgba(196,80,62,.4);
       margin-bottom: 32px;
     }
     .teaser h2 {
@@ -423,17 +423,17 @@
       font-size: clamp(2.2rem, 5vw, 4rem);
       font-weight: 900;
       line-height: 1.1;
-      color: var(--cream);
+      color: var(--navy);
       margin-bottom: 18px;
     }
-    .teaser h2 em { font-style: italic; color: var(--gold); }
+    .teaser h2 em { font-style: italic; color: var(--coral); }
     .teaser-hook {
       font-size: clamp(1rem, 2vw, 1.2rem);
       font-weight: 300;
       font-style: italic;
       font-family: 'Playfair Display', serif;
       line-height: 1.65;
-      color: rgba(250,235,210,.9);
+      color: rgba(45,40,90,.65);
       max-width: 580px;
       margin: 0 auto 56px;
     }
@@ -452,14 +452,14 @@
       padding: 0 clamp(24px, 5vw, 60px);
     }
     .teaser-big-date + .teaser-big-date {
-      border-left: 1px solid rgba(250,235,210,.25);
+      border-left: 1px solid rgba(45,40,90,.15);
     }
     .teaser-big-date .num {
       font-family: 'Playfair Display', serif;
       font-size: clamp(3.5rem, 8vw, 7rem);
       font-weight: 900;
       line-height: .9;
-      color: var(--cream);
+      color: var(--navy);
       letter-spacing: -.02em;
     }
     .teaser-big-date .mois {
@@ -467,7 +467,7 @@
       font-weight: 500;
       letter-spacing: .18em;
       text-transform: uppercase;
-      color: var(--gold);
+      color: var(--coral);
       margin-top: 10px;
     }
     .teaser-big-date .label {
@@ -475,15 +475,15 @@
       font-weight: 400;
       letter-spacing: .14em;
       text-transform: uppercase;
-      color: rgba(250,235,210,.55);
+      color: rgba(45,40,90,.4);
       margin-top: 4px;
     }
     .teaser-horaire {
       display: inline-flex;
       align-items: center;
       gap: 14px;
-      background: rgba(250,235,210,.12);
-      border: 1px solid rgba(250,235,210,.25);
+      background: rgba(45,40,90,.06);
+      border: 1px solid rgba(45,40,90,.12);
       border-radius: 100px;
       padding: 14px 32px;
       margin-bottom: 32px;
@@ -492,34 +492,34 @@
       font-family: 'Playfair Display', serif;
       font-size: 1.3rem;
       font-weight: 700;
-      color: var(--cream);
+      color: var(--navy);
     }
     .teaser-horaire span {
       font-size: .7rem;
       font-weight: 500;
       letter-spacing: .14em;
       text-transform: uppercase;
-      color: rgba(250,235,210,.65);
+      color: rgba(45,40,90,.5);
     }
     .teaser-horaire-dot {
       width: 4px; height: 4px;
       border-radius: 50%;
-      background: rgba(250,235,210,.35);
+      background: rgba(45,40,90,.2);
     }
     .teaser-location {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      color: rgba(250,235,210,.65);
+      color: rgba(45,40,90,.5);
       font-size: .78rem;
       font-weight: 400;
       letter-spacing: .06em;
     }
     .teaser-location::before { content: '📍'; font-size: .85rem; }
 
-    /* ─── PARTENAIRES ─── */
+    /* ─── PARTENAIRES (fond coral) ─── */
     .partenaires {
-      background: var(--cream);
+      background: var(--coral);
       padding: clamp(64px, 10vw, 100px) clamp(24px, 6vw, 80px);
     }
     .partenaires-inner {
@@ -528,23 +528,23 @@
       text-align: center;
     }
     .partenaires-inner .tag {
-      color: var(--coral-dk);
-      border-color: rgba(196,80,62,.4);
+      color: var(--gold);
+      border-color: rgba(230,185,65,.5);
       margin-bottom: 24px;
     }
     .partenaires-inner h2 {
       font-family: 'Playfair Display', serif;
       font-size: clamp(1.6rem, 3vw, 2.4rem);
       font-weight: 700;
-      color: var(--navy);
+      color: var(--cream);
       margin-bottom: 12px;
       line-height: 1.2;
     }
-    .partenaires-inner h2 em { font-style: italic; color: var(--coral); }
+    .partenaires-inner h2 em { font-style: italic; color: var(--gold); }
     .partenaires-subtitle {
       font-size: .95rem;
       font-weight: 300;
-      color: #6a5040;
+      color: rgba(250,235,210,.8);
       margin-bottom: 56px;
       line-height: 1.6;
     }
@@ -567,7 +567,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f0e8db;
+      background: rgba(250,235,210,.15);
       border-radius: 16px;
       overflow: hidden;
       transition: opacity .2s;
@@ -578,16 +578,15 @@
       max-height: 80px;
       object-fit: contain;
     }
-    /* Placeholder quand pas d'image */
     .partenaire-logo.placeholder {
-      border: 2px dashed rgba(196,80,62,.3);
+      border: 2px dashed rgba(250,235,210,.35);
     }
     .partenaire-logo.placeholder span {
       font-size: .65rem;
       font-weight: 500;
       letter-spacing: .1em;
       text-transform: uppercase;
-      color: rgba(196,80,62,.5);
+      color: rgba(250,235,210,.6);
       text-align: center;
       padding: 8px;
       line-height: 1.4;
@@ -597,65 +596,11 @@
       font-weight: 500;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: #6a5040;
-    }
-
-    /* ─── FOOTER ─── */
-    .footer {
-      background: var(--navy);
-      padding: 32px clamp(24px, 6vw, 80px);
-      text-align: center;
-    }
-    .footer p {
-      font-size: .75rem;
-      font-weight: 300;
-      letter-spacing: .08em;
-      color: rgba(250,235,210,.35);
+      color: rgba(250,235,210,.75);
     }
   </style>
 </head>
 <body>
-
-<!-- ══════════════════════════════════════════
-     INTRO — HAVRE CHAMPÊTRE
-══════════════════════════════════════════ -->
-<div class="intro-wrap">
-  <div class="intro">
-    <div class="intro-text">
-      <span class="tag">L'espace</span>
-      <h2>Un havre champêtre<br><em>au cœur du fleuve</em></h2>
-      <p>
-        Nichée au cœur des Jardins des Floralies, sur une île bercée par le Saint-Laurent,
-        la Buvette des Floralies est un espace gourmand pensé pour celles et ceux
-        qui aiment prendre leur temps. Une grande terrasse ouverte sur le ciel,
-        des saveurs de saison, une programmation culturelle qui vibre doucement
-        tout au long de l'été.
-      </p>
-      <br>
-      <p>
-        Portée par <strong>Les Survenants</strong> et la fine équipe d'<strong>Aire Commune</strong>,
-        c'est une invitation à ralentir, à manger bien, à respirer fort.
-      </p>
-    </div>
-    <div class="intro-visual">
-      <img
-        src="https://drive.google.com/thumbnail?id=1u5z-4tYfAB945n6eQuahtoLV87UVE6oZ&sz=w1200"
-        alt="Terrasse champêtre en été"
-      >
-      <div class="intro-badge">
-        <span>Ouverture</span>
-        <strong>29 juin 2026</strong>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════
-     DIVIDER
-══════════════════════════════════════════ -->
-<div class="divider"><span class="divider-icon">✦</span></div>
-
 
 <!-- ══════════════════════════════════════════
      ITINÉRAIRE — LE SAMEDI PARFAIT
@@ -785,6 +730,41 @@
 
   </div>
 </section>
+
+
+<!-- ══════════════════════════════════════════
+     INTRO — HAVRE CHAMPÊTRE
+══════════════════════════════════════════ -->
+<div class="intro-wrap">
+  <div class="intro">
+    <div class="intro-text">
+      <span class="tag">L'espace</span>
+      <h2>Un havre champêtre<br><em>au cœur du fleuve</em></h2>
+      <p>
+        Nichée au cœur des Jardins des Floralies, sur une île bercée par le Saint-Laurent,
+        la Buvette des Floralies est un espace gourmand pensé pour celles et ceux
+        qui aiment prendre leur temps. Une grande terrasse ouverte sur le ciel,
+        des saveurs de saison, une programmation culturelle qui vibre doucement
+        tout au long de l'été.
+      </p>
+      <br>
+      <p>
+        Portée par <strong>Les Survenants</strong> et la fine équipe d'<strong>Aire Commune</strong>,
+        c'est une invitation à ralentir, à manger bien, à respirer fort.
+      </p>
+    </div>
+    <div class="intro-visual">
+      <img
+        src="https://drive.google.com/thumbnail?id=1u5z-4tYfAB945n6eQuahtoLV87UVE6oZ&sz=w1200"
+        alt="Terrasse champêtre en été"
+      >
+      <div class="intro-badge">
+        <span>Ouverture</span>
+        <strong>29 juin 2026</strong>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <!-- ══════════════════════════════════════════
@@ -921,12 +901,6 @@
 </section>
 
 
-<!-- ══════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════ -->
-<footer class="footer">
-  <p>© 2026 Les Survenants — La Buvette des Floralies · Île Notre-Dame, Parc Jean-Drapeau, Montréal</p>
-</footer>
 
 </body>
 </html>
