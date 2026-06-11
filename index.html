@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Buvette des Floralies — Les Survenants</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --coral:    #e87562;
+      --coral-lt: #ef8f80;
+      --coral-dk: #c4503e;
+      --rouge-sv: #e87562;
+      --cream:    #FAEBD2;
+      --gold:     #E6B941;
+      --navy:     #2D285A;
+      --teal:     #4B7891;
+      --peach:    #EB9687;
+      --white:    #fff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--coral);
+      color: var(--cream);
+      overflow-x: hidden;
+    }
+
+    /* ─── UTILITAIRES ─── */
+    .serif { font-family: 'Playfair Display', serif; }
+
+    .tag {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(230,185,65,.5);
+      border-radius: 100px;
+      padding: 5px 14px;
+    }
+
+    /* ─── INTRO (section claire) ─── */
+    .intro-wrap {
+      background: var(--cream);
+    }
+    .intro {
+      padding: clamp(64px, 10vw, 120px) clamp(24px, 6vw, 80px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media(max-width:760px){ .intro { grid-template-columns:1fr; gap:40px; } }
+    .intro-text .tag {
+      color: var(--coral-dk);
+      border-color: rgba(196,80,62,.4);
+      margin-bottom: 20px;
+    }
+    .intro-text h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 24px;
+      color: var(--navy);
+    }
+    .intro-text h2 em { font-style: italic; color: var(--coral); }
+    .intro-text p {
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 1.75;
+      color: #3a2a1a;
+    }
+    .intro-text p strong {
+      font-weight: 500;
+      color: #2a1a0e;
+    }
+    .intro-visual {
+      position: relative;
+      aspect-ratio: 4/5;
+      border-radius: 200px 200px 40px 40px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(45,40,90,.18);
+    }
+    .intro-visual img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+    .intro-badge {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--white);
+      border-radius: 16px;
+      padding: 14px 22px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,.14);
+      white-space: nowrap;
+    }
+    .intro-badge strong {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--navy);
+    }
+    .intro-badge span {
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--coral);
+    }
+
+    /* ─── DIVIDER (sur fond corail) ─── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 48px clamp(24px, 6vw, 80px);
+      max-width: 1200px;
+      margin: 0 auto;
+      opacity: .4;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--cream);
+    }
+    .divider-icon { font-size: 1.1rem; }
+
+    /* ─── ITINÉRAIRE (fond corail) ─── */
+    .itineraire {
+      padding: clamp(0px, 2vw, 40px) clamp(24px, 6vw, 80px) clamp(64px, 10vw, 120px);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .itineraire-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+    .itineraire-header .tag { margin-bottom: 18px; }
+    .itineraire-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--cream);
+    }
+    .itineraire-header h2 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .itineraire-header p {
+      margin-top: 18px;
+      font-size: 1rem;
+      font-weight: 300;
+      color: rgba(250,235,210,.85);
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      align-items: center;
+      gap: 0;
+    }
+    .step:nth-child(even) .step-img { order: 3; }
+    .step:nth-child(even) .step-body { order: 1; text-align: right; }
+    .step:nth-child(even) .step-body .step-tag { justify-content: flex-end; }
+    .step:nth-child(even) .step-num-wrap { order: 2; }
+
+    @media(max-width:760px){
+      .step {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .step:nth-child(even) .step-img,
+      .step:nth-child(even) .step-body { order: unset; text-align: left; }
+      .step:nth-child(even) .step-body .step-tag { justify-content: flex-start; }
+      .step:nth-child(even) .step-num-wrap { order: unset; }
+      .step-num-wrap { display: none; }
+    }
+
+    .step-img {
+      aspect-ratio: 4/3;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 16px 60px rgba(45,40,90,.25);
+      margin: 32px 0;
+    }
+    .step-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .6s ease;
+    }
+    .step-img:hover img { transform: scale(1.04); }
+
+    .step-num-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      position: relative;
+      height: 100%;
+    }
+    .step-num {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: rgba(250,235,210,.15);
+      border: 2px solid rgba(250,235,210,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .step-line {
+      width: 2px;
+      flex: 1;
+      background: linear-gradient(to bottom, rgba(250,235,210,.35), rgba(250,235,210,.05));
+      min-height: 40px;
+    }
+
+    .step-body {
+      padding: 32px 40px;
+    }
+    @media(max-width:760px){ .step-body { padding: 16px 0 32px; } }
+    .step-tag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .step-tag .num-mobile {
+      display: none;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(250,235,210,.2);
+      font-family: 'Playfair Display', serif;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--gold);
+      align-items: center;
+      justify-content: center;
+    }
+    @media(max-width:760px){ .step-tag .num-mobile { display: flex; } }
+    .step-tag-label {
+      font-size: .68rem;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(250,235,210,.7);
+    }
+    .step-body h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--cream);
+      margin-bottom: 14px;
+    }
+    .step-body h3 em { font-style: italic; color: var(--gold); }
+    .step-body p {
+      font-size: .98rem;
+      font-weight: 300;
+      line-height: 1.78;
+      color: rgba(250,235,210,.9);
+      max-width: 380px;
+    }
+    .step:nth-child(even) .step-body p { margin-left: auto; }
+    @media(max-width:760px){ .step:nth-child(even) .step-body p { margin-left: 0; } }
+
+    /* ─── BUVETTE SECTION (fond navy) ─── */
+    .buvette-section {
+      background: var(--navy);
+      color: var(--cream);
+      padding: clamp(64px, 10vw, 120px) clamp(24px, 6vw, 80px);
+      position: relative;
+      overflow: hidden;
+    }
+    .buvette-section::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,117,98,.2), transparent 70%);
+      pointer-events: none;
+    }
+    .buvette-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    @media(max-width:760px){ .buvette-inner { grid-template-columns:1fr; gap:48px; } }
+    .buvette-text .tag {
+      color: var(--gold);
+      border-color: rgba(230,185,65,.4);
+      margin-bottom: 24px;
+    }
+    .buvette-text h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 28px;
+      color: var(--cream);
+    }
+    .buvette-text h2 em { font-style: italic; color: var(--peach); }
+    .buvette-text p {
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: rgba(250,235,210,.8);
+      margin-bottom: 16px;
+    }
+    .buvette-text p strong { font-weight: 500; color: var(--cream); }
+    .buvette-quote {
+      margin-top: 36px;
+      padding-left: 24px;
+      border-left: 3px solid var(--coral);
+    }
+    .buvette-quote blockquote {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-style: italic;
+      line-height: 1.6;
+      color: rgba(250,235,210,.9);
+    }
+    .buvette-quote cite {
+      display: block;
+      margin-top: 10px;
+      font-size: .75rem;
+      font-style: normal;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(250,235,210,.45);
+    }
+    .buvette-images {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 16px;
+      height: 520px;
+    }
+    @media(max-width:760px){ .buvette-images { height: 360px; } }
+    .buvette-img {
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .buvette-img:first-child {
+      grid-row: 1 / 3;
+    }
+    .buvette-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    /* ─── TEASER ─── */
+    .teaser {
+      background: var(--coral);
+      padding: clamp(72px, 12vw, 140px) clamp(24px, 6vw, 80px) clamp(80px, 12vw, 150px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .teaser::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      border: 1px solid rgba(250,235,210,.1);
+      pointer-events: none;
+    }
+    .teaser::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1000px; height: 1000px;
+      border-radius: 50%;
+      border: 1px solid rgba(250,235,210,.05);
+      pointer-events: none;
+    }
+    .teaser-inner {
+      position: relative;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .teaser .tag {
+      color: var(--gold);
+      border-color: rgba(230,185,65,.5);
+      margin-bottom: 32px;
+    }
+    .teaser h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--cream);
+      margin-bottom: 18px;
+    }
+    .teaser h2 em { font-style: italic; color: var(--gold); }
+    .teaser-hook {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 300;
+      font-style: italic;
+      font-family: 'Playfair Display', serif;
+      line-height: 1.65;
+      color: rgba(250,235,210,.9);
+      max-width: 580px;
+      margin: 0 auto 56px;
+    }
+    .teaser-big-dates {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+    .teaser-big-date {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 clamp(24px, 5vw, 60px);
+    }
+    .teaser-big-date + .teaser-big-date {
+      border-left: 1px solid rgba(250,235,210,.25);
+    }
+    .teaser-big-date .num {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 900;
+      line-height: .9;
+      color: var(--cream);
+      letter-spacing: -.02em;
+    }
+    .teaser-big-date .mois {
+      font-size: clamp(.75rem, 1.5vw, .95rem);
+      font-weight: 500;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-top: 10px;
+    }
+    .teaser-big-date .label {
+      font-size: .65rem;
+      font-weight: 400;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(250,235,210,.55);
+      margin-top: 4px;
+    }
+    .teaser-horaire {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(250,235,210,.12);
+      border: 1px solid rgba(250,235,210,.25);
+      border-radius: 100px;
+      padding: 14px 32px;
+      margin-bottom: 32px;
+    }
+    .teaser-horaire strong {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--cream);
+    }
+    .teaser-horaire span {
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(250,235,210,.65);
+    }
+    .teaser-horaire-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: rgba(250,235,210,.35);
+    }
+    .teaser-location {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(250,235,210,.65);
+      font-size: .78rem;
+      font-weight: 400;
+      letter-spacing: .06em;
+    }
+    .teaser-location::before { content: '📍'; font-size: .85rem; }
+
+    /* ─── PARTENAIRES ─── */
+    .partenaires {
+      background: var(--cream);
+      padding: clamp(64px, 10vw, 100px) clamp(24px, 6vw, 80px);
+    }
+    .partenaires-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .partenaires-inner .tag {
+      color: var(--coral-dk);
+      border-color: rgba(196,80,62,.4);
+      margin-bottom: 24px;
+    }
+    .partenaires-inner h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .partenaires-inner h2 em { font-style: italic; color: var(--coral); }
+    .partenaires-subtitle {
+      font-size: .95rem;
+      font-weight: 300;
+      color: #6a5040;
+      margin-bottom: 56px;
+      line-height: 1.6;
+    }
+    .partenaires-grid {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(40px, 8vw, 100px);
+      flex-wrap: wrap;
+    }
+    .partenaire-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .partenaire-logo {
+      width: 160px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0e8db;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+    .partenaire-logo:hover { opacity: .85; }
+    .partenaire-logo img {
+      max-width: 130px;
+      max-height: 80px;
+      object-fit: contain;
+    }
+    /* Placeholder quand pas d'image */
+    .partenaire-logo.placeholder {
+      border: 2px dashed rgba(196,80,62,.3);
+    }
+    .partenaire-logo.placeholder span {
+      font-size: .65rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(196,80,62,.5);
+      text-align: center;
+      padding: 8px;
+      line-height: 1.4;
+    }
+    .partenaire-name {
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #6a5040;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: var(--navy);
+      padding: 32px clamp(24px, 6vw, 80px);
+      text-align: center;
+    }
+    .footer p {
+      font-size: .75rem;
+      font-weight: 300;
+      letter-spacing: .08em;
+      color: rgba(250,235,210,.35);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     INTRO — HAVRE CHAMPÊTRE
+══════════════════════════════════════════ -->
+<div class="intro-wrap">
+  <div class="intro">
+    <div class="intro-text">
+      <span class="tag">L'espace</span>
+      <h2>Un havre champêtre<br><em>au cœur du fleuve</em></h2>
+      <p>
+        Nichée au cœur des Jardins des Floralies, sur une île bercée par le Saint-Laurent,
+        la Buvette des Floralies est un espace gourmand pensé pour celles et ceux
+        qui aiment prendre leur temps. Une grande terrasse ouverte sur le ciel,
+        des saveurs de saison, une programmation culturelle qui vibre doucement
+        tout au long de l'été.
+      </p>
+      <br>
+      <p>
+        Portée par <strong>Les Survenants</strong> et la fine équipe d'<strong>Aire Commune</strong>,
+        c'est une invitation à ralentir, à manger bien, à respirer fort.
+      </p>
+    </div>
+    <div class="intro-visual">
+      <img
+        src="https://drive.google.com/thumbnail?id=1u5z-4tYfAB945n6eQuahtoLV87UVE6oZ&sz=w1200"
+        alt="Terrasse champêtre en été"
+      >
+      <div class="intro-badge">
+        <span>Ouverture</span>
+        <strong>29 juin 2026</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     DIVIDER
+══════════════════════════════════════════ -->
+<div class="divider"><span class="divider-icon">✦</span></div>
+
+
+<!-- ══════════════════════════════════════════
+     ITINÉRAIRE — LE SAMEDI PARFAIT
+══════════════════════════════════════════ -->
+<section class="itineraire">
+  <div class="itineraire-header">
+    <span class="tag">Le samedi parfait</span>
+    <h2>Un itinéraire pour<br><em>oublier la ville</em></h2>
+    <p>
+      Une journée qui commence sur l'eau et finit les pieds croisés,
+      le soleil bas, un verre de blanc dans la main. Voilà le programme.
+    </p>
+  </div>
+
+  <div class="steps">
+
+    <!-- Étape 1 : La navette fluviale -->
+    <div class="step">
+      <div class="step-img">
+        <img
+          src="https://drive.google.com/thumbnail?id=1VNchKUM8Sq6ZPR7H4VVcZkT7LZaLZ2mz&sz=w1200"
+          alt="Traversée en navette fluviale sur le Saint-Laurent"
+        >
+      </div>
+      <div class="step-num-wrap">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-tag">
+          <div class="num-mobile">1</div>
+          <span class="step-tag-label">Le départ</span>
+        </div>
+        <h3>La navette<br><em>fluviale</em></h3>
+        <p>
+          Ça commence dès l'embarquement. Le fleuve s'ouvre,
+          la skyline s'éloigne lentement, et quelque chose
+          se dépose en vous. La traversée dure quelques minutes —
+          juste assez pour couper avec le reste.
+        </p>
+      </div>
+    </div>
+
+    <!-- Étape 2 : Le parc -->
+    <div class="step">
+      <div class="step-body">
+        <div class="step-tag">
+          <div class="num-mobile">2</div>
+          <span class="step-tag-label">La promenade</span>
+        </div>
+        <h3>Le parc<br><em>rayonnant</em></h3>
+        <p>
+          Parc Jean-Drapeau se mérite à pieds. On longe les allées
+          ombragées, on respire l'herbe coupée, on prend
+          le temps de regarder autour. C'est grand, c'est vert,
+          c'est exactement ce dont vous aviez besoin.
+        </p>
+      </div>
+      <div class="step-num-wrap">
+        <div class="step-line"></div>
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-img">
+        <img
+          src="https://drive.google.com/thumbnail?id=1MuTq4TqH6Lb486tYDXaP7-2oFINz4FGy&sz=w1200"
+          alt="Promenade dans le parc en été"
+        >
+      </div>
+    </div>
+
+    <!-- Étape 3 : Les Floralies -->
+    <div class="step">
+      <div class="step-img">
+        <img
+          src="https://drive.google.com/thumbnail?id=1mdjsYChBQVm2DvBsm0rZrAD8eA8Q89F0&sz=w1200"
+          alt="Jardins des Floralies, explosion de couleurs"
+        >
+      </div>
+      <div class="step-num-wrap">
+        <div class="step-line"></div>
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-tag">
+          <div class="num-mobile">3</div>
+          <span class="step-tag-label">L'émerveillement</span>
+        </div>
+        <h3>Les Floralies,<br><em>plein les yeux</em></h3>
+        <p>
+          Des milliers de fleurs. Des couleurs qui n'ont pas de nom.
+          On flâne lentement entre les parterres, on s'arrête souvent,
+          on photographie beaucoup. On s'en met plein les mirettes
+          sans retenue aucune.
+        </p>
+      </div>
+    </div>
+
+    <!-- Étape 4 : La buvette -->
+    <div class="step">
+      <div class="step-body">
+        <div class="step-tag">
+          <div class="num-mobile">4</div>
+          <span class="step-tag-label">Le repos bien mérité</span>
+        </div>
+        <h3>La buvette,<br><em>enfin</em></h3>
+        <p>
+          On pose les sacs. On choisit une table bien placée —
+          de préférence avec le fleuve dans le coin de l'œil.
+          La carte est courte, pensée, délicieuse.
+          On commande. On ne repart pas de sitôt.
+          C'est exactement là qu'on voulait finir.
+        </p>
+      </div>
+      <div class="step-num-wrap">
+        <div class="step-line"></div>
+        <div class="step-num">4</div>
+      </div>
+      <div class="step-img">
+        <img
+          src="https://drive.google.com/thumbnail?id=1iblE6CNJvrpNlorX3yX-oL4ymSe0JKFo&sz=w1200"
+          alt="Terrasse de la buvette, fin de journée"
+        >
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     LA BUVETTE — SECTION SOMBRE
+══════════════════════════════════════════ -->
+<section class="buvette-section">
+  <div class="buvette-inner">
+
+    <div class="buvette-text">
+      <span class="tag">La table</span>
+      <h2>Des becs fins<br>aux <em>fourneaux</em></h2>
+      <p>
+        La carte de la Buvette des Floralies est l'œuvre de gens qui mangent bien
+        et qui y pensent beaucoup. Produits de saison, gestes précis, plaisirs simples
+        élevés au bon endroit. Pas de chichis. Juste ce qu'il faut, quand il le faut.
+      </p>
+      <p>
+        Des bouchées pour partager, des assiettes pour s'attarder,
+        des <strong>paniers pique-nique</strong> pour celles et ceux qui veulent
+        emporter la fête dans les jardins. Et des boissons soigneusement
+        choisies, du rosé qui fait du bien au verre nature qui surprend.
+      </p>
+      <div class="buvette-quote">
+        <blockquote>
+          « On a voulu faire un endroit où on a vraiment envie de manger —
+          pas juste de s'alimenter. »
+        </blockquote>
+        <cite>L'équipe Les Survenants × Aire Commune</cite>
+      </div>
+    </div>
+
+    <div class="buvette-images">
+      <div class="buvette-img">
+        <img
+          src="https://images.unsplash.com/photo-1565299507177-b0ac66763828?auto=format&fit=crop&w=700&q=85"
+          alt="Assiettes de saison à la buvette"
+        >
+      </div>
+      <div class="buvette-img">
+        <img
+          src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=700&q=85"
+          alt="Sélection de vins et boissons"
+        >
+      </div>
+      <div class="buvette-img">
+        <img
+          src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=700&q=85"
+          alt="Ambiance de fin de journée à la terrasse"
+        >
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     TEASER — COMING SOON
+══════════════════════════════════════════ -->
+<section class="teaser">
+  <div class="teaser-inner">
+    <span class="tag">Bientôt</span>
+    <h2>Réservez votre<br><em>samedi</em></h2>
+    <p class="teaser-hook">
+      La programmation complète arrive bientôt.<br>
+      En attendant — retenez la date, prévenez vos amis,
+      et commencez à saliver.
+    </p>
+
+    <div class="teaser-big-dates">
+      <div class="teaser-big-date">
+        <span class="num">29</span>
+        <span class="mois">Juin</span>
+        <span class="label">Ouverture</span>
+      </div>
+      <div class="teaser-big-date">
+        <span class="num">07</span>
+        <span class="mois">Sept.</span>
+        <span class="label">Clôture</span>
+      </div>
+      <div class="teaser-big-date">
+        <span class="num">2026</span>
+        <span class="mois">Été</span>
+        <span class="label">Saison</span>
+      </div>
+    </div>
+
+    <div class="teaser-horaire">
+      <span class="teaser-horaire-dot"></span>
+      <strong>Midi — 19h</strong>
+      <span>En terrasse · Tous les jours</span>
+      <span class="teaser-horaire-dot"></span>
+    </div>
+
+    <br><br>
+    <div class="teaser-location">
+      Île Notre-Dame · Parc Jean-Drapeau · Jardins des Floralies
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     PARTENAIRES
+══════════════════════════════════════════ -->
+<section class="partenaires">
+  <div class="partenaires-inner">
+    <span class="tag">Partenaires</span>
+    <h2>Ils rendent<br><em>tout ça possible</em></h2>
+    <p class="partenaires-subtitle">
+      La Buvette des Floralies est une collaboration entre des gens qui aiment bien faire les choses.
+    </p>
+
+    <div class="partenaires-grid">
+
+      <div class="partenaire-item">
+        <!-- Remplace par le vrai logo : <img src="LIEN_GOOGLE_DRIVE" alt="Parc Jean-Drapeau"> -->
+        <div class="partenaire-logo placeholder">
+          <span>Logo<br>Parc Jean-Drapeau</span>
+        </div>
+        <span class="partenaire-name">Parc Jean-Drapeau</span>
+      </div>
+
+      <div class="partenaire-item">
+        <!-- Remplace par le vrai logo : <img src="LIEN_GOOGLE_DRIVE" alt="Aire Commune"> -->
+        <div class="partenaire-logo placeholder">
+          <span>Logo<br>Aire Commune</span>
+        </div>
+        <span class="partenaire-name">Aire Commune</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="footer">
+  <p>© 2026 Les Survenants — La Buvette des Floralies · Île Notre-Dame, Parc Jean-Drapeau, Montréal</p>
+</footer>
+
+</body>
+</html>
