@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Plan Chambre</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f5f2ee;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100svh;
+      padding: 14px 10px 10px;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+    #hint {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    #room {
+      position: relative;
+      background: #fff;
+      border: 3px solid #2c2c2c;
+      flex-shrink: 0;
+      touch-action: none;
+    }
+    /* Room dimension labels */
+    #room::before {
+      content: '325 cm';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #aaa;
+    }
+    #room::after {
+      content: '350 cm';
+      position: absolute;
+      top: 50%;
+      right: -30px;
+      transform: translateY(-50%) rotate(90deg);
+      font-size: 10px;
+      color: #aaa;
+      white-space: nowrap;
+    }
+    .item {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
+      border: 2px solid rgba(0,0,0,.12);
+      transition: box-shadow .12s;
+    }
+    .item.active {
+      box-shadow: 0 6px 20px rgba(0,0,0,.28);
+      z-index: 99 !important;
+    }
+    .item-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(0,0,0,.72);
+      pointer-events: none;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .item-dim {
+      font-size: 9px;
+      color: rgba(0,0,0,.45);
+      pointer-events: none;
+      text-align: center;
+      margin-top: 1px;
+    }
+    .rot {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(0,0,0,.15);
+      font-size: 13px;
+      line-height: 20px;
+      text-align: center;
+      cursor: pointer;
+      color: #444;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chambre &mdash; 325 &times; 350 cm</h1>
+  <p id="hint">Glisse les meubles &bull; ↻ pour pivoter</p>
+  <div id="room"></div>
+
+  <script>
+    const ROOM_W_CM = 325, ROOM_H_CM = 350;
+
+    // Scale to fit screen (leave margins for labels)
+    const maxW = window.innerWidth  - 50;
+    const maxH = window.innerHeight - 110;
+    const SCALE = Math.min(maxW / ROOM_W_CM, maxH / ROOM_H_CM);
+
+    const RW = Math.round(ROOM_W_CM * SCALE);
+    const RH = Math.round(ROOM_H_CM * SCALE);
+    const room = document.getElementById('room');
+    room.style.width  = RW + 'px';
+    room.style.height = RH + 'px';
+
+    const ITEMS = [
+      { id:'lit',     label:'Lit',     dim:'140×195', w:140, h:195, color:'#aad4e8', x:10,  y:10  },
+      { id:'bureau',  label:'Bureau',  dim:'75×150',  w:75,  h:150, color:'#f7d59f', x:155, y:10  },
+      { id:'meuble',  label:'Meuble',  dim:'50×145',  w:50,  h:145, color:'#b3ddb3', x:245, y:10  },
+      { id:'armoire', label:'Armoire', dim:'61×140',  w:61,  h:140, color:'#d4b8f0', x:10,  y:215 },
+    ];
+
+    const state = {};
+
+    ITEMS.forEach((f, i) => {
+      const sw = Math.round(f.w * SCALE);
+      const sh = Math.round(f.h * SCALE);
+      const sx = Math.round(f.x * SCALE);
+      const sy = Math.round(f.y * SCALE);
+
+      state[f.id] = { rotated: false, sw, sh };
+
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.id = 'i-' + f.id;
+      el.style.cssText = `width:${sw}px;height:${sh}px;left:${sx}px;top:${sy}px;background:${f.color};z-index:${i+1};`;
+      el.innerHTML =
+        `<button class="rot" data-id="${f.id}">&#8635;</button>` +
+        `<span class="item-name">${f.label}</span>` +
+        `<span class="item-dim">${f.dim} cm</span>`;
+      room.appendChild(el);
+      makeDraggable(el, f.id);
+    });
+
+    function makeDraggable(el, id) {
+      let ox, oy, sl, st, dragging = false;
+
+      function start(cx, cy) {
+        dragging = true;
+        ox = cx; oy = cy;
+        sl = parseInt(el.style.left)  || 0;
+        st = parseInt(el.style.top)   || 0;
+        el.classList.add('active');
+      }
+
+      function move(cx, cy) {
+        if (!dragging) return;
+        const rRect = room.getBoundingClientRect();
+        const w = el.offsetWidth, h = el.offsetHeight;
+        // Use room-relative position from touch/mouse position
+        let nx = cx - rRect.left - w / 2;
+        let ny = cy - rRect.top  - h / 2;
+        nx = Math.max(0, Math.min(nx, RW - w));
+        ny = Math.max(0, Math.min(ny, RH - h));
+        el.style.left = nx + 'px';
+        el.style.top  = ny + 'px';
+      }
+
+      function end() {
+        dragging = false;
+        el.classList.remove('active');
+      }
+
+      // Touch
+      el.addEventListener('touchstart', e => {
+        if (e.target.classList.contains('rot')) return;
+        e.preventDefault();
+        const t = e.touches[0];
+        start(t.clientX, t.clientY);
+      }, { passive: false });
+
+      el.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!dragging) return;
+        const t = e.touches[0];
+        move(t.clientX, t.clientY);
+      }, { passive: false });
+
+      el.addEventListener('touchend', e => {
+        if (e.target.classList.contains('rot')) return;
+        end();
+      });
+
+      // Mouse (desktop)
+      el.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('rot')) return;
+        start(e.clientX, e.clientY);
+        const mm = ev => move(ev.clientX, ev.clientY);
+        const mu = ()  => { end(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+        window.addEventListener('mousemove', mm);
+        window.addEventListener('mouseup', mu);
+      });
+    }
+
+    // Rotate
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('.rot');
+      if (!btn) return;
+      const id  = btn.dataset.id;
+      const el  = document.getElementById('i-' + id);
+      const s   = state[id];
+      s.rotated = !s.rotated;
+      const [nw, nh] = s.rotated ? [s.sh, s.sw] : [s.sw, s.sh];
+      const cl = parseInt(el.style.left) || 0;
+      const ct = parseInt(el.style.top)  || 0;
+      el.style.width  = Math.min(nw, RW - cl) + 'px';
+      el.style.height = Math.min(nh, RH - ct) + 'px';
+    });
+
+    // Rotate via touch (tap)
+    document.addEventListener('touchend', e => {
+      const btn = e.target.closest('.rot');
+      if (!btn) return;
+      e.preventDefault();
+      btn.click();
+    }, { passive: false });
+  </script>
+</body>
+</html>
